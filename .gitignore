@@ -1,0 +1,11 @@
+# Package Files #
+*.jar
+*.war
+*.ear
+*.pyc
+
+#other stuff
+target/
+dependency-reduced-pom.xml
+*~
+
