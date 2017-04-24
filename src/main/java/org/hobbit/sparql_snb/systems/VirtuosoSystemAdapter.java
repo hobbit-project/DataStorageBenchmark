@@ -39,7 +39,7 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
 
 	@Override
 	public void receiveGeneratedData(byte[] data) {
-		byte [] data1 = Arrays.copyOf(data, 4);	
+    	byte [] data1 = Arrays.copyOf(data, 4);	
     	int fileNameLength = ByteBuffer.wrap(data1).getInt();
     	
     	data1 = Arrays.copyOfRange(data, 4, 4 + fileNameLength);
@@ -50,10 +50,7 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
     	
     	FileOutputStream fos;
 		try {
-			String datasetsFolderName = "datasets"; 
-			File theDir = new File(datasetsFolderName);
-			theDir.mkdir();
-			fos = new FileOutputStream(datasetsFolderName + File.separator + fileName);
+			fos = new FileOutputStream("datasets" + File.separator + fileName);
 	    	fos.write(Arrays.copyOfRange(data, 8 + fileNameLength, 8 + fileNameLength + fileContentLength));
 	    	fos.close();
 		} catch (FileNotFoundException e) {
@@ -77,6 +74,7 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
     		ResultSet results = qe.execSelect();
     		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     		ResultSetFormatter.outputAsJSON(outputStream, results);
+    		System.out.println(outputStream.toString());
     		try {
     			this.sendResultToEvalStorage(taskId, outputStream.toByteArray());
     		} catch (IOException e) {
@@ -100,8 +98,14 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
     }
     
     private void internalInit() {
-//    	String[] envVariablesVirtuoso = new String[] { "SPARQL_UPDATE=true",
-//    	"DEFAULT_GRAPH=http://www.virtuoso-graph.com/" };
+		String datasetsFolderName = "datasets"; 
+		File theDir = new File(datasetsFolderName);
+		theDir.mkdir();
+    	
+    	String[] envVariablesVirtuoso = new String[] {
+    			"SPARQL_UPDATE=true",
+    			"DEFAULT_GRAPH=sib"
+    			};
 //    	virtuosoContName = this.createContainer("tenforce/virtuoso:latest", envVariablesVirtuoso);
     	virtuosoContName = "localhost";
     	queryExecFactory = new QueryExecutionFactoryHttp("http://" + virtuosoContName + ":8890/sparql");
@@ -138,8 +142,8 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
     }
     
     private void loadDataset() {
-    	String scriptFilePath = System.getProperty("user.dir") + File.separator + "resources" + File.separator + "load.sh";
-    	String[] command = {"/bin/bash", scriptFilePath, System.getProperty("user.dir") + File.separator + "datasets/", "2"};
+    	String scriptFilePath = System.getProperty("user.dir") + File.separator + "util" + File.separator + "load.sh";
+    	String[] command = {"/bin/bash", scriptFilePath, "datasets", "2"};
     	Process p;
     	try {
     		p = new ProcessBuilder(command).redirectErrorStream(true).start();
