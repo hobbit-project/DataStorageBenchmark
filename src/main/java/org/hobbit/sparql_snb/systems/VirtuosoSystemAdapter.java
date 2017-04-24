@@ -138,7 +138,7 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
     }
     
     private void loadDataset() {
-    	String scriptFilePath = System.getProperty("user.dir") + File.separator + "util" + File.separator + "load.sh";
+    	String scriptFilePath = System.getProperty("user.dir") + File.separator + "resources" + File.separator + "load.sh";
     	String[] command = {"/bin/bash", scriptFilePath, System.getProperty("user.dir") + File.separator + "datasets/", "2"};
     	Process p;
     	try {
