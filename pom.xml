@@ -35,6 +35,12 @@
 			<version>1.0.2</version>
 		</dependency>
 		<!-- Add a slf4j log binding here -->
+		<dependency>
+			<groupId>org.kie.modules</groupId>
+			<artifactId>org-apache-commons-net</artifactId>
+			<version>6.5.0.Final</version>
+			<type>pom</type>
+		</dependency>
 	</dependencies>
 
 	<build>
