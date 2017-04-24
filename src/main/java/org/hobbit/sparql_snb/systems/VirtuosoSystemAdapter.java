@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.aksw.jena_sparql_api.core.QueryExecutionFactory;
 import org.aksw.jena_sparql_api.http.QueryExecutionFactoryHttp;
+import org.apache.commons.io.FileUtils;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetFormatter;
@@ -49,7 +50,10 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
     	
     	FileOutputStream fos;
 		try {
-			fos = new FileOutputStream("datasets" + File.separator + fileName);
+			String datasetsFolderName = "datasets"; 
+			File theDir = new File(datasetsFolderName);
+			theDir.mkdir();
+			fos = new FileOutputStream(datasetsFolderName + File.separator + fileName);
 	    	fos.write(Arrays.copyOfRange(data, 8 + fileNameLength, 8 + fileNameLength + fileContentLength));
 	    	fos.close();
 		} catch (FileNotFoundException e) {
@@ -120,6 +124,9 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
     		loadDataset();
     		
     		try {
+    			String datasetsFolderName = "datasets"; 
+    			File theDir = new File(datasetsFolderName);
+    			FileUtils.deleteDirectory(theDir);
     			sendToCmdQueue(VirtuosoSystemAdapterConstants.BULK_LOADING_DATA_FINISHED);
     		} catch (IOException e) {
     			e.printStackTrace();
