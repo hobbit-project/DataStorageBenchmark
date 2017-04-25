@@ -3,14 +3,13 @@ package org.hobbit.sparql_snb;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.concurrent.Semaphore;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.net.ftp.FTP;
-import org.apache.commons.net.ftp.FTPClient;
 import org.hobbit.core.components.AbstractDataGenerator;
 import org.hobbit.core.rabbit.RabbitMQUtils;
 import org.hobbit.sparql_snb.util.VirtuosoSystemAdapterConstants;
@@ -20,14 +19,11 @@ import org.slf4j.LoggerFactory;
 public class SNBDataGenerator extends AbstractDataGenerator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SNBDataGenerator.class);
-	private String server, user, password, remoteFile;
+	private String remoteFile;
     private boolean paramsGen;
     private Semaphore tasksReady = new Semaphore(0);
 	
-    public SNBDataGenerator(String server, String user, String password, String remoteFile) {
-    	this.server = server;
-    	this.user = user;
-    	this.password = password;
+    public SNBDataGenerator(String remoteFile) {
     	this.remoteFile = remoteFile;
     	this.paramsGen = remoteFile.endsWith("tasks.txt");
     }
@@ -65,16 +61,9 @@ public class SNBDataGenerator extends AbstractDataGenerator {
     }
     
     private void downloadFileAndSendData() {
-    	LOGGER.info("Downloading file " + remoteFile + " from " + server);
-		FTPClient ftpClient = new FTPClient();
-        try {
-        	int port = 21;
-            ftpClient.connect(server, port);
-            ftpClient.login(user, password);
-            ftpClient.enterLocalPassiveMode();
-            ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
-            
-            InputStream inputStream = ftpClient.retrieveFileStream(remoteFile);
+    	LOGGER.info("Downloading file " + remoteFile);
+        try {            
+            InputStream inputStream = new URL(remoteFile).openStream();
             byte[] bytesArray = null;
             
             if (!paramsGen) {
@@ -107,24 +96,12 @@ public class SNBDataGenerator extends AbstractDataGenerator {
         		}
         	}
  
-            boolean success = ftpClient.completePendingCommand();
-            if (success) {
-            	LOGGER.info("File " + remoteFile + " has been downloaded successfully and sent.");
-            }
+            LOGGER.info("File " + remoteFile + " has been downloaded successfully and sent.");
             inputStream.close();
  
         } catch (IOException ex) {
             System.out.println("Error: " + ex.getMessage());
             ex.printStackTrace();
-        } finally {
-            try {
-                if (ftpClient.isConnected()) {
-                    ftpClient.logout();
-                    ftpClient.disconnect();
-                }
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
         }
 	}
     
