@@ -1,4 +1,4 @@
-sparql select ?creator ?p_firstname ?p_lastname
+select ?creator ?p_firstname ?p_lastname
 where {
   ?post snvoc:id %messageId% .
   ?post snvoc:hasCreator ?creator .
