@@ -32,8 +32,7 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
     private int dataTerminationCount = 0;
     private int numberOfDataGenerators;
     
-	public VirtuosoSystemAdapter(int numberOfDataGenerators, int maxParallelProcessedMsgs) {
-		super(maxParallelProcessedMsgs);
+	public VirtuosoSystemAdapter(int numberOfDataGenerators) {
         this.numberOfDataGenerators = numberOfDataGenerators;
 	}
 
@@ -142,7 +141,7 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
     }
     
     private void loadDataset() {
-    	String scriptFilePath = System.getProperty("user.dir") + File.separator + "resources" + File.separator + "load.sh";
+    	String scriptFilePath = System.getProperty("user.dir") + File.separator + "scripts" + File.separator + "load.sh";
     	String[] command = {"/bin/bash", scriptFilePath, "datasets", "2"};
     	Process p;
     	try {

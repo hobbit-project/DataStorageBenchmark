@@ -1,4 +1,4 @@
-sparql select ?from ?first ?last  #Q8
+select ?from ?first ?last  #Q8
               ((?dt - xsd:dateTime("1970-01-01T00:00:00.000+00:00")) * 1000 as ?creationDate)
 	      ?rep ?content
 where {
@@ -8,7 +8,7 @@ where {
         ?rep snvoc:replyOf ?post . ?rep snvoc:creationDate ?dt .
     }
     order by desc (?dt)
-    limit 20
+    limit %limit%
   } .
   ?rep snvoc:hasCreator ?from .
   optional { ?from snvoc:firstName ?first } .

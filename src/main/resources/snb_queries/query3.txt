@@ -1,4 +1,4 @@
-sparql select ?fr ?first ?last ?ct1 ?ct2 ((?ct1 + ?ct2) as ?sum) #Q3
+select ?fr ?first ?last ?ct1 ?ct2 ((?ct1 + ?ct2) as ?sum) #Q3
 where { 
      {select distinct ?fr ?first ?last ?ct1 ?ct2
       where {
@@ -31,4 +31,4 @@ where {
     filter (?ct1 > 0 && ?ct2 > 0) .
 }
 order by desc(?sum) ?fr
-limit 20
+limit %limit%

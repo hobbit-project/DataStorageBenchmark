@@ -1,4 +1,4 @@
-sparql select ?title ?group (count(?post) as ?cnt) #Q5
+select ?title ?group (count(?post) as ?cnt) #Q5
 where { 
     {select distinct ?fr
      where {
@@ -15,4 +15,4 @@ where {
 }
 group by ?title ?group
 order by desc(?cnt) ?group
-limit 20
+limit %limit%

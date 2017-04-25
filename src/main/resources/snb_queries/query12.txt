@@ -1,4 +1,4 @@
-sparql select ?exp ?first ?last (group_concat(distinct ?tagname; separator=', ') as ?tags)  #Q12
+select ?exp ?first ?last (group_concat(distinct ?tagname; separator=', ') as ?tags)  #Q12
               (count (distinct ?reply) as ?cnt)
 where {
     sn:pers%personId% snvoc:knows ?exp .
@@ -12,4 +12,4 @@ where {
 }
 group by ?exp ?first ?last
 order by desc(?cnt) ?exp
-limit 20
+limit %limit%

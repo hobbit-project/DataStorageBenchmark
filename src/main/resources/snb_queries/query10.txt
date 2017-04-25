@@ -1,4 +1,4 @@
-sparql select ?first ?last ((coalesce(?s1, 0) - coalesce(?s2,0)) as ?score) ?fof ?gender ?locationname #Q10 
+select ?first ?last ((coalesce(?s1, 0) - coalesce(?s2,0)) as ?score) ?fof ?gender ?locationname #Q10 
 where {
    {select distinct ?fof
     where {
@@ -36,4 +36,4 @@ where {
    }.
 }
 order by desc(?score) ?fof
-limit 10
+limit %limit%

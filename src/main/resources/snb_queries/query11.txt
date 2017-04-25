@@ -1,8 +1,8 @@
-sparql select ?first ?last ?startdate ?orgname ?fr #Q11
+select ?first ?last ?startdate ?orgname ?fr #Q11
 where {
     ?w snvoc:hasOrganisation ?org . ?org foaf:name ?orgname .
     ?org snvoc:isLocatedIn ?country.
-    ?country foaf:name '%countryName%' .
+    ?country foaf:name %countryName% .
     ?fr snvoc:workAt ?w . ?w snvoc:workFrom ?startdate .
     filter (?startdate < %workFromYear%) .
     {  select distinct ?fr
@@ -14,4 +14,4 @@ where {
     optional { ?fr snvoc:lastName ?last } .
 }
 order by ?startdate ?fr desc(?orgname)
-limit 10
+limit %limit%
