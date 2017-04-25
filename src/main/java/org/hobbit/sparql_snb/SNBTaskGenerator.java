@@ -60,9 +60,9 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
     	String [] arguments = parts[1].substring(0, parts[1].length()-1).split(", ");
     	String queryString = null;
     	if (queryType.startsWith("LdbcQuery"))
-    		queryString = file2string(new File("src/main/resources/org/hobbit/storage/queries/snb_queries", "query" + queryType.replaceAll("[^0-9]*", "") + ".txt"));
+    		queryString = file2string(new File("src/main/resources/snb_queries", "query" + queryType.replaceAll("[^0-9]*", "") + ".txt"));
     	else
-    		queryString = file2string(new File("src/main/resources/org/hobbit/storage/queries/snb_queries", "s" + queryType.replaceAll("[^0-9]*", "") + ".txt"));
+    		queryString = file2string(new File("src/main/resources/snb_queries", "s" + queryType.replaceAll("[^0-9]*", "") + ".txt"));
     	for (String arg : arguments) {
 			String [] tmp = arg.split("=");
 			switch (tmp[0]) {

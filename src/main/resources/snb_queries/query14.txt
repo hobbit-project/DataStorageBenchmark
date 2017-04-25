@@ -1,0 +1,14 @@
+sparql select ?link (count (*) as ?shares) #Q14
+where {
+        { select distinct ?fr
+                 where { { sn:pers%personId% snvoc:knows ?fr.} union {sn:pers%personId% snvoc:knows ?fr2. ?fr2 snvoc:knows ?fr. filter (?fr != sn:pers%personId%)} }
+        }
+        ?post snvoc:hasCreator ?fr .
+        ?post snvoc:links ?link .
+        ?post snvoc:creationDate ?datetime .
+        filter (?datetime >= "%maxDate%"^^xsd:dateTime) .
+	filter (!exists {?post snvoc:visible "false"^^xsd:boolean }).
+}
+group by ?link
+order by desc (?shares) ?link
+limit 20
