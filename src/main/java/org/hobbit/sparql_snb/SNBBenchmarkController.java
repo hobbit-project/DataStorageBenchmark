@@ -12,11 +12,11 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 
 	// TODO: Add image names of containers
 	/* Data generator Docker image */
-	private static final String DATA_GENERATOR_CONTAINER_IMAGE = "";
+	private static final String DATA_GENERATOR_CONTAINER_IMAGE = "git.project-hobbit.eu:4567/mspasic/sparql-snbdatagenerator";
 	/* Task generator Docker image */
-	private static final String TASK_GENERATOR_CONTAINER_IMAGE = "";
+	private static final String TASK_GENERATOR_CONTAINER_IMAGE = "git.project-hobbit.eu:4567/mspasic/sparql-snbtaskgenerator";
 	/* Evaluation module Docker image */
-	private static final String EVALUATION_MODULE_CONTAINER_IMAGE = "";
+	private static final String EVALUATION_MODULE_CONTAINER_IMAGE = "git.project-hobbit.eu:4567/mspasic/sparql-snbevaluationmodule";
 
 	public SNBBenchmarkController() {
 
@@ -76,6 +76,7 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 		// wait for the system to terminate
 		waitForSystemToFinish();
 
+		LOGGER.info("Evaluation...");
 		createEvaluationModule(EVALUATION_MODULE_CONTAINER_IMAGE, this.envVariablesEvaluationModule);
 		// wait for the evaluation to finish
 		waitForEvalComponentsToFinish();

@@ -1,17 +1,18 @@
 package org.hobbit.sparql_snb.systems;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 import org.aksw.jena_sparql_api.core.QueryExecutionFactory;
 import org.aksw.jena_sparql_api.http.QueryExecutionFactoryHttp;
-import org.apache.commons.io.FileUtils;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetFormatter;
@@ -25,7 +26,7 @@ import org.slf4j.LoggerFactory;
 public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
 	
     private static final Logger LOGGER = LoggerFactory.getLogger(VirtuosoSystemAdapter.class);
-    private String virtuosoContName = null;
+    private String virtuosoContName = "localhost";
     private QueryExecutionFactory queryExecFactory;
 //    private UpdateExecutionFactory updateExecFactory;
 
@@ -34,6 +35,10 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
     
 	public VirtuosoSystemAdapter(int numberOfDataGenerators) {
         this.numberOfDataGenerators = numberOfDataGenerators;
+	}
+	
+	public VirtuosoSystemAdapter() {
+        this.numberOfDataGenerators = 1;
 	}
 
 	@Override
@@ -49,7 +54,7 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
     	
     	FileOutputStream fos;
 		try {
-			fos = new FileOutputStream("datasets" + File.separator + fileName);
+			fos = new FileOutputStream(System.getProperty("user.dir") + File.separator + "datasets" + File.separator + fileName);
 	    	fos.write(Arrays.copyOfRange(data, 8 + fileNameLength, 8 + fileNameLength + fileContentLength));
 	    	fos.close();
 		} catch (FileNotFoundException e) {
@@ -73,7 +78,6 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
     		ResultSet results = qe.execSelect();
     		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     		ResultSetFormatter.outputAsJSON(outputStream, results);
-    		System.out.println(outputStream.toString());
     		try {
     			this.sendResultToEvalStorage(taskId, outputStream.toByteArray());
     		} catch (IOException e) {
@@ -101,21 +105,21 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
 		File theDir = new File(datasetsFolderName);
 		theDir.mkdir();
     	
-    	String[] envVariablesVirtuoso = new String[] {
-    			"SPARQL_UPDATE=true",
-    			"DEFAULT_GRAPH=sib"
-    			};
+//    	String[] envVariablesVirtuoso = new String[] {
+//    			"SPARQL_UPDATE=true",
+//    			"DEFAULT_GRAPH=sib"
+//    			};
 //    	virtuosoContName = this.createContainer("tenforce/virtuoso:latest", envVariablesVirtuoso);
-    	virtuosoContName = "localhost";
+//    	virtuosoContName = "localhost";
     	queryExecFactory = new QueryExecutionFactoryHttp("http://" + virtuosoContName + ":8890/sparql");
-
-    	try {
-    		//TimeUnit.MINUTES.sleep(2);
-    		TimeUnit.SECONDS.sleep(1);
-    	} catch (InterruptedException e) {
-    		// TODO Auto-generated catch block
-    		e.printStackTrace();
-    	}
+    	LOGGER.info("http://" + virtuosoContName + ":8890/sparql");
+//
+//    	try {
+//    		TimeUnit.MINUTES.sleep(2);
+//    	} catch (InterruptedException e) {
+//    		// TODO Auto-generated catch block
+//    		e.printStackTrace();
+//    	}
     }
     
     @Override
@@ -124,12 +128,18 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
     	if (VirtuosoSystemAdapterConstants.BULK_LOAD_DATA_GEN_FINISHED == command) {
     		LOGGER.info("Bulk phase begins");
 
+    		try {
+    			TimeUnit.SECONDS.sleep(2);
+    		} catch (InterruptedException e) {
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
+    		}
     		loadDataset();
     		
     		try {
-    			String datasetsFolderName = "datasets"; 
-    			File theDir = new File(datasetsFolderName);
-    			FileUtils.deleteDirectory(theDir);
+//    			String datasetsFolderName = System.getProperty("user.dir") + File.separator + "datasets"; 
+//    			File theDir = new File(datasetsFolderName);
+//    			FileUtils.deleteDirectory(theDir);
     			sendToCmdQueue(VirtuosoSystemAdapterConstants.BULK_LOADING_DATA_FINISHED);
     		} catch (IOException e) {
     			e.printStackTrace();
@@ -141,12 +151,18 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
     }
     
     private void loadDataset() {
-    	String scriptFilePath = System.getProperty("user.dir") + File.separator + "scripts" + File.separator + "load.sh";
-    	String[] command = {"/bin/bash", scriptFilePath, "datasets", "2"};
+    	String scriptFilePath = System.getProperty("user.dir") + File.separator + "load.sh";
+    	String[] command = {"/bin/bash", scriptFilePath, virtuosoContName, System.getProperty("user.dir") + File.separator + "datasets", "2"};
     	Process p;
     	try {
     		p = new ProcessBuilder(command).redirectErrorStream(true).start();
+    		BufferedReader reader = 
+                    new BufferedReader(new InputStreamReader(p.getInputStream()));
     		p.waitFor();
+    		String line = null;
+    		while ( (line = reader.readLine()) != null) {
+    			LOGGER.info(line);
+    		}
     	} catch (IOException e) {
     		// TODO Auto-generated catch block
     		e.printStackTrace();

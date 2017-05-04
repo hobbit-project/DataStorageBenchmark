@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -30,6 +31,7 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
 	@Override
 	protected void evaluateResponse(byte[] expectedData, byte[] receivedData, long taskSentTimestamp,
 			long responseReceivedTimestamp) throws Exception {
+		LOGGER.info("Evaluate response");
 		String eStr = RabbitMQUtils.readString(expectedData);
     	String rStr = RabbitMQUtils.readString(receivedData);
     	String [] lines = eStr.split("\n");
@@ -52,6 +54,13 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
 	protected Model summarizeEvaluation() throws Exception {
 		// All tasks/responsens have been evaluated. Summarize the results,
 		// write them into a Jena model and send it to the benchmark controller.
+		LOGGER.info("Summarize evaluation...");
+		try {
+			TimeUnit.MINUTES.sleep(1);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		for (Map.Entry<String, ArrayList<Long>> entry : executionTimes.entrySet()) {
     		long total = 0;
     		for (long l : entry.getValue()) {
