@@ -23,4 +23,4 @@ echo $(date +%H:%M:%S.%N | cut -b1-12)" : Virtuoso Server started successfully."
 
 # run the system adapter
 echo $(date +%H:%M:%S.%N | cut -b1-12)" : Running the System adapter..."
-java -cp sparql-snb.jar org.hobbit.core.run.ComponentStarter org.hobbit.sparql_snb.systems.VirtuosoSystemAdapter
+java -cp sparql-snb.jar org.hobbit.core.run.ComponentStarter1 org.hobbit.sparql_snb.systems.VirtuosoSystemAdapter

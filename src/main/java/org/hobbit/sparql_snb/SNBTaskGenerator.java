@@ -8,15 +8,18 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Map;
 
-import org.hobbit.core.components.AbstractTaskGenerator;
+import org.hobbit.core.components.AbstractSequencingTaskGenerator;
 import org.hobbit.core.rabbit.RabbitMQUtils;
+import org.hobbit.sparql_snb.util.SNBConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SNBTaskGenerator extends AbstractTaskGenerator {
+public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SNBTaskGenerator.class);
+	private int numberOfOperations;
 	
 	public SNBTaskGenerator() {
 		
@@ -26,10 +29,23 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
     public void init() throws Exception {
         LOGGER.info("Initialization begins.");
         super.init();
+        
+        internalInit();
         LOGGER.info("Initialization is over.");
     }
     
-    @Override
+    private void internalInit() {
+    	Map<String, String> env = System.getenv();
+    	
+    	// Number of operations
+    	if (!env.containsKey(SNBConstants.GENERATOR_NUMBER_OF_OPERATIONS)) {
+            LOGGER.error("Couldn't get \"" + SNBConstants.GENERATOR_NUMBER_OF_OPERATIONS + "\" from the properties. Aborting.");
+            System.exit(1);
+        }
+    	numberOfOperations = Integer.parseInt(env.get(SNBConstants.GENERATOR_NUMBER_OF_OPERATIONS));	
+	}
+
+	@Override
 	public void close() throws IOException {
 		// Free the resources you requested here
 
@@ -42,6 +58,11 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
 	@Override
 	protected void generateTask(byte[] data) throws Exception {
         String taskIdString = getNextTaskId();
+        
+        // Total number of operations achieved
+        if (Integer.parseInt(taskIdString) >= numberOfOperations)
+        	return;
+        
         long timestamp = System.currentTimeMillis();
         
         String dataString = RabbitMQUtils.readString(data);

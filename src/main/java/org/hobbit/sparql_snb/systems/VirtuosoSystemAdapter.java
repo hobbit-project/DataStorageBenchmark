@@ -112,7 +112,7 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
 //    	virtuosoContName = this.createContainer("tenforce/virtuoso:latest", envVariablesVirtuoso);
 //    	virtuosoContName = "localhost";
     	queryExecFactory = new QueryExecutionFactoryHttp("http://" + virtuosoContName + ":8890/sparql");
-    	LOGGER.info("http://" + virtuosoContName + ":8890/sparql");
+    	
 //
 //    	try {
 //    		TimeUnit.MINUTES.sleep(2);

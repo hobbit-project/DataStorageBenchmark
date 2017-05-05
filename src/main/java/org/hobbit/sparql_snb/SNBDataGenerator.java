@@ -6,12 +6,14 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.concurrent.Semaphore;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hobbit.core.components.AbstractDataGenerator;
 import org.hobbit.core.rabbit.RabbitMQUtils;
+import org.hobbit.sparql_snb.util.SNBConstants;
 import org.hobbit.sparql_snb.util.VirtuosoSystemAdapterConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +22,7 @@ public class SNBDataGenerator extends AbstractDataGenerator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SNBDataGenerator.class);
 	private Semaphore generateTasks = new Semaphore(0);
+	private int scaleFactor;
 	
     public SNBDataGenerator() {
     	
@@ -31,9 +34,20 @@ public class SNBDataGenerator extends AbstractDataGenerator {
         super.init();
 
 		// Your initialization code comes here...
-        
+        internalInit();
     }
     
+	private void internalInit() {
+    	Map<String, String> env = System.getenv();
+    	
+    	// Number of operations
+    	if (!env.containsKey(SNBConstants.GENERATOR_SCALE_FACTOR)) {
+            LOGGER.error("Couldn't get \"" + SNBConstants.GENERATOR_SCALE_FACTOR + "\" from the properties. Aborting.");
+            System.exit(1);
+        }
+    	scaleFactor = Integer.parseInt(env.get(SNBConstants.GENERATOR_SCALE_FACTOR));
+	}
+
 	@Override
 	protected void generateData() throws Exception {
 		LOGGER.info("Data Generator is running...");
@@ -53,7 +67,8 @@ public class SNBDataGenerator extends AbstractDataGenerator {
     }
     
     private void downloadFileAndSendData() {
-    	String directory = "http://hobbitdata.informatik.uni-leipzig.de/mighty-storage-challenge/Task2/sf1/";
+    	String directory = "http://hobbitdata.informatik.uni-leipzig.de/mighty-storage-challenge/Task2/sf" + scaleFactor + "/";
+    	//TODO: populate this array based on the specified SF
     	String[] files = {"social_network_static_0_0.ttl.gz", "social_network_person_0_0.ttl.gz", "social_network_activity_0_0.ttl.gz"};
     	try { 
     		for (String remoteFile : files) {
@@ -94,8 +109,6 @@ public class SNBDataGenerator extends AbstractDataGenerator {
         		String msg = null;
         		String fileContent = IOUtils.toString(inputStream);
         		String [] lines = fileContent.split("\n");
-        		//TODO: Remove the following line
-        		lines = Arrays.copyOfRange(lines, 0, 199300);
         		int current1 = 0;
         		int current2 = current1 + 1;
         		while (current1 < lines.length) {

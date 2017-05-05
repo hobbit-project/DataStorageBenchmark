@@ -31,9 +31,9 @@ import org.slf4j.LoggerFactory;
  * @author Michael R&ouml;der (roeder@informatik.uni-leipzig.de)
  *
  */
-public class ComponentStarter {
+public class ComponentStarter1 {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ComponentStarter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ComponentStarter1.class);
 
     /**
      * Exit code that is used if the program has to terminate because of an
