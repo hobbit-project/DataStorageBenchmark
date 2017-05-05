@@ -68,9 +68,12 @@ public class SNBDataGenerator extends AbstractDataGenerator {
     
     private void downloadFileAndSendData() {
     	String directory = "http://hobbitdata.informatik.uni-leipzig.de/mighty-storage-challenge/Task2/sf" + scaleFactor + "/";
-    	//TODO: populate this array based on the specified SF
-    	String[] files = {"social_network_static_0_0.ttl.gz", "social_network_person_0_0.ttl.gz", "social_network_activity_0_0.ttl.gz"};
+    	String datasetFiles = directory + "dataset_files.txt";
     	try { 
+			InputStream is = new URL(datasetFiles).openStream();
+			String [] files = IOUtils.toString(is).split("\n");
+			is.close();
+			
     		for (String remoteFile : files) {
     			remoteFile = directory + remoteFile;
     			LOGGER.info("Downloading file " + remoteFile);           
