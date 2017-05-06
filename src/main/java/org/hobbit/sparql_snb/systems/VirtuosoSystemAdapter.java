@@ -71,6 +71,8 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
     	LOGGER.info("SPARQL query received.");
 		String queryString = RabbitMQUtils.readString(data);
 		
+		//TODO: Add updates
+		
     	// Create a QueryExecution object from a query string ...
     	QueryExecution qe = queryExecFactory.createQueryExecution(queryString);
     	// and run it.

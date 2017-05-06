@@ -5,10 +5,12 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 
 import org.hobbit.core.components.AbstractSequencingTaskGenerator;
 import org.hobbit.core.rabbit.RabbitMQUtils;
@@ -82,6 +84,8 @@ public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
     	String queryString = null;
     	if (queryType.startsWith("LdbcQuery"))
     		queryString = file2string(new File("snb_queries", "query" + queryType.replaceAll("[^0-9]*", "") + ".txt"));
+    	else if (queryType.startsWith("LdbcUpdate"))
+    		queryString = "INSERT DATA {\n" + prepareTriplets(queryType, arguments) + "}\n";
     	else
     		queryString = file2string(new File("snb_queries", "s" + queryType.replaceAll("[^0-9]*", "") + ".txt"));
     	for (String arg : arguments) {
@@ -121,6 +125,130 @@ public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
 		return queryString;
 	}
     
+	private String prepareTriplets(String queryType, String[] arguments) throws ParseException {
+		
+		if (queryType.equals("LdbcUpdate1AddPerson")) {
+			
+		}
+		else if (queryType.equals("LdbcUpdate2AddPostLike")) {
+			long personId = 0, postId = 0;
+			Date creationDate = null;
+			for (String arg : arguments) {
+				String [] tmp = arg.split("=");
+				switch (tmp[0]) {
+				case "personId":
+					personId = Long.parseLong(tmp[1]);
+					break;
+				case "postId":
+					postId = Long.parseLong(tmp[1]);
+					break;
+				case "creationDate":
+					DateFormat format1 = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
+					creationDate = format1.parse(tmp[1]);
+					break;
+				}
+			}
+			String personUri = "<http://www.ldbc.eu/ldbc_socialnet/1.0/data/pers" + String.format("%020d", personId) + ">";
+            String postUri = "<http://www.ldbc.eu/ldbc_socialnet/1.0/data/post" + String.format("%020d", postId) + ">";
+            DateFormat df1 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'+00:00'");
+            df1.setTimeZone(TimeZone.getTimeZone("GMT"));
+            String triplets [] = new String[1];
+            triplets[0] = personUri + " <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/likes> [ <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/hasPost> " + postUri + "; <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/creationDate> \"" + df1.format(creationDate) + "\"^^xsd:dateTime ] .";
+            return String.join("\n", triplets);
+		}
+		else if (queryType.equals("LdbcUpdate3AddCommentLike")) {
+			long personId = 0, commentId = 0;
+			Date creationDate = null;
+			for (String arg : arguments) {
+				String [] tmp = arg.split("=");
+				switch (tmp[0]) {
+				case "personId":
+					personId = Long.parseLong(tmp[1]);
+					break;
+				case "commentId":
+					commentId = Long.parseLong(tmp[1]);
+					break;
+				case "creationDate":
+					DateFormat format1 = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
+					creationDate = format1.parse(tmp[1]);
+					break;
+				}
+			}
+			String personUri = "<http://www.ldbc.eu/ldbc_socialnet/1.0/data/pers" + String.format("%020d", personId) + ">";
+            String commentUri = "<http://www.ldbc.eu/ldbc_socialnet/1.0/data/comm" + String.format("%020d", commentId) + ">";
+            DateFormat df1 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'+00:00'");
+            df1.setTimeZone(TimeZone.getTimeZone("GMT"));
+            String triplets [] = new String[1];
+            triplets[0] = personUri + " <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/likes> [ <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/hasComment> " + commentUri + "; <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/creationDate> \"" + df1.format(creationDate) + "\"^^xsd:dateTime ] .";
+            return String.join("\n", triplets);
+		}
+		else if (queryType.equals("LdbcUpdate4AddForum")) {
+			
+		}
+		else if (queryType.equals("LdbcUpdate5AddForumMembership")) {
+			long personId = 0, forumId = 0;
+			Date joinDate = null;
+			for (String arg : arguments) {
+				String [] tmp = arg.split("=");
+				switch (tmp[0]) {
+				case "personId":
+					personId = Long.parseLong(tmp[1]);
+					break;
+				case "forumId":
+					forumId = Long.parseLong(tmp[1]);
+					break;
+				case "joinDate":
+					DateFormat format1 = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
+					joinDate = format1.parse(tmp[1]);
+					break;
+				}
+			}
+			String forumUri = "<http://www.ldbc.eu/ldbc_socialnet/1.0/data/forum" + String.format("%020d", forumId) + ">";
+            String memberUri = "<http://www.ldbc.eu/ldbc_socialnet/1.0/data/pers" + String.format("%020d", personId) + ">";
+            DateFormat df1 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'+00:00'");
+            df1.setTimeZone(TimeZone.getTimeZone("GMT"));
+            String triplets [] = new String[1];
+            triplets[0] = forumUri + " <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/hasMember> [ <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/hasPerson> " + memberUri + "; <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/joinDate> \"" + df1.format(joinDate) + "\"] .";
+            return String.join("\n", triplets);
+		}
+		else if (queryType.equals("LdbcUpdate6AddPost")) {
+			
+		}
+		else if (queryType.equals("LdbcUpdate7AddComment")) {
+			
+		}
+		else if (queryType.equals("LdbcUpdate8AddFriendship")) {
+			long person1Id = 0, person2Id = 0;
+			Date creationDate = null;
+			for (String arg : arguments) {
+				String [] tmp = arg.split("=");
+				switch (tmp[0]) {
+				case "person1Id":
+					person1Id = Long.parseLong(tmp[1]);
+					break;
+				case "person2Id":
+					person2Id = Long.parseLong(tmp[1]);
+					break;
+				case "creationDate":
+					DateFormat format1 = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
+					creationDate = format1.parse(tmp[1]);
+					break;
+				}
+			}
+			String person1Uri = "<http://www.ldbc.eu/ldbc_socialnet/1.0/data/pers" + String.format("%020d", person1Id) + ">";
+            String person2Uri = "<http://www.ldbc.eu/ldbc_socialnet/1.0/data/pers" + String.format("%020d", person2Id) + ">";
+            DateFormat df1 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'+00:00'");
+            df1.setTimeZone(TimeZone.getTimeZone("GMT"));
+            String triplets [] = new String[4];
+            triplets[0] = person1Uri + " <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/knows> [ <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/hasPerson> " + person2Uri + "; <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/creationDate> \"" + df1.format(creationDate) + "\"^^xsd:dateTime ] .";
+            triplets[1] = person2Uri + " <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/knows> [ <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/hasPerson> " + person1Uri + "; <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/creationDate> \"" + df1.format(creationDate) + "\"^^xsd:dateTime ] .";
+            triplets[2] = person1Uri + " <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/knows> " + person2Uri + " .";
+            triplets[3] = person2Uri + " <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/knows> " + person1Uri + " .";
+            return String.join("\n", triplets);
+		}
+		return "";
+	}
+
 	private String file2string(File file) throws Exception {
 		BufferedReader reader = null;
 		try {
