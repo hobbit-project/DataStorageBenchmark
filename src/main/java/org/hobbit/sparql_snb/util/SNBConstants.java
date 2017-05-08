@@ -31,6 +31,15 @@ public final class SNBConstants {
 	public static final String EVALUATION_S6E_AVERAGE_TIME = "evaluation_short_query6_execution_average_time";
 	public static final String EVALUATION_S7E_AVERAGE_TIME = "evaluation_short_query7_execution_average_time";
 	
+	public static final String EVALUATION_U1E_AVERAGE_TIME = "evaluation_update1_execution_average_time";
+	public static final String EVALUATION_U2E_AVERAGE_TIME = "evaluation_update2_execution_average_time";
+	public static final String EVALUATION_U3E_AVERAGE_TIME = "evaluation_update3_execution_average_time";
+	public static final String EVALUATION_U4E_AVERAGE_TIME = "evaluation_update4_execution_average_time";
+	public static final String EVALUATION_U5E_AVERAGE_TIME = "evaluation_update5_execution_average_time";
+	public static final String EVALUATION_U6E_AVERAGE_TIME = "evaluation_update6_execution_average_time";
+	public static final String EVALUATION_U7E_AVERAGE_TIME = "evaluation_update7_execution_average_time";
+	public static final String EVALUATION_U8E_AVERAGE_TIME = "evaluation_update8_execution_average_time";
+	
 	public static final String EVALUATION_THROUGHPUT = "evaluation_throughput";
 	
 }

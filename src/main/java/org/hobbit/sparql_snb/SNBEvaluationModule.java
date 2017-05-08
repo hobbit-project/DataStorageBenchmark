@@ -52,6 +52,14 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
 	private Property EVALUATION_S5E_AVERAGE_TIME = null;
 	private Property EVALUATION_S6E_AVERAGE_TIME = null;
 	private Property EVALUATION_S7E_AVERAGE_TIME = null;
+	private Property EVALUATION_U1E_AVERAGE_TIME = null;
+	private Property EVALUATION_U2E_AVERAGE_TIME = null;
+	private Property EVALUATION_U3E_AVERAGE_TIME = null;
+	private Property EVALUATION_U4E_AVERAGE_TIME = null;
+	private Property EVALUATION_U5E_AVERAGE_TIME = null;
+	private Property EVALUATION_U6E_AVERAGE_TIME = null;
+	private Property EVALUATION_U7E_AVERAGE_TIME = null;
+	private Property EVALUATION_U8E_AVERAGE_TIME = null;
 	
 	/* Property for throughput" */
 	private Property EVALUATION_THROUGHPUT = null;
@@ -98,6 +106,15 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
 		totalTimePerQueryType.put("LdbcShortQuery5MessageCreator", (long) 0);
 		totalTimePerQueryType.put("LdbcShortQuery6MessageForum", (long) 0);
 		totalTimePerQueryType.put("LdbcShortQuery7MessageReplies", (long) 0);
+		totalTimePerQueryType.put("LdbcUpdate1AddPerson", (long) 0);
+		totalTimePerQueryType.put("LdbcUpdate2AddPostLike", (long) 0);
+		totalTimePerQueryType.put("LdbcUpdate3AddCommentLike", (long) 0);
+		totalTimePerQueryType.put("LdbcUpdate4AddForum", (long) 0);
+		totalTimePerQueryType.put("LdbcUpdate5AddForumMembership", (long) 0);
+		totalTimePerQueryType.put("LdbcUpdate6AddPost", (long) 0);
+		totalTimePerQueryType.put("LdbcUpdate7AddComment", (long) 0);
+		totalTimePerQueryType.put("LdbcUpdate8AddFriendship", (long) 0);
+		
 		
 		numberOfQueriesPerQueryType.put("LdbcQuery1", 0);
 		numberOfQueriesPerQueryType.put("LdbcQuery2", 0);
@@ -120,6 +137,14 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
 		numberOfQueriesPerQueryType.put("LdbcShortQuery5MessageCreator", 0);
 		numberOfQueriesPerQueryType.put("LdbcShortQuery6MessageForum", 0);
 		numberOfQueriesPerQueryType.put("LdbcShortQuery7MessageReplies", 0);
+		numberOfQueriesPerQueryType.put("LdbcUpdate1AddPerson", 0);
+		numberOfQueriesPerQueryType.put("LdbcUpdate2AddPostLike", 0);
+		numberOfQueriesPerQueryType.put("LdbcUpdate3AddCommentLike", 0);
+		numberOfQueriesPerQueryType.put("LdbcUpdate4AddForum", 0);
+		numberOfQueriesPerQueryType.put("LdbcUpdate5AddForumMembership", 0);
+		numberOfQueriesPerQueryType.put("LdbcUpdate6AddPost", 0);
+		numberOfQueriesPerQueryType.put("LdbcUpdate7AddComment", 0);
+		numberOfQueriesPerQueryType.put("LdbcUpdate8AddFriendship", 0);
 		
 		
 		Map<String, String> env = System.getenv();
@@ -217,6 +242,39 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
         EVALUATION_S6E_AVERAGE_TIME = finalModel.createProperty(env.get(SNBConstants.EVALUATION_S6E_AVERAGE_TIME));
         EVALUATION_S7E_AVERAGE_TIME = finalModel.createProperty(env.get(SNBConstants.EVALUATION_S7E_AVERAGE_TIME));
         
+        if (!env.containsKey(SNBConstants.EVALUATION_U1E_AVERAGE_TIME)) {
+            throw new IllegalArgumentException("Couldn't get \"" + SNBConstants.EVALUATION_U1E_AVERAGE_TIME + "\" from the environment. Aborting.");
+        }
+        if (!env.containsKey(SNBConstants.EVALUATION_U2E_AVERAGE_TIME)) {
+            throw new IllegalArgumentException("Couldn't get \"" + SNBConstants.EVALUATION_U2E_AVERAGE_TIME + "\" from the environment. Aborting.");
+        }
+        if (!env.containsKey(SNBConstants.EVALUATION_U3E_AVERAGE_TIME)) {
+            throw new IllegalArgumentException("Couldn't get \"" + SNBConstants.EVALUATION_U3E_AVERAGE_TIME + "\" from the environment. Aborting.");
+        }
+        if (!env.containsKey(SNBConstants.EVALUATION_U4E_AVERAGE_TIME)) {
+            throw new IllegalArgumentException("Couldn't get \"" + SNBConstants.EVALUATION_U4E_AVERAGE_TIME + "\" from the environment. Aborting.");
+        }
+        if (!env.containsKey(SNBConstants.EVALUATION_U5E_AVERAGE_TIME)) {
+            throw new IllegalArgumentException("Couldn't get \"" + SNBConstants.EVALUATION_U5E_AVERAGE_TIME + "\" from the environment. Aborting.");
+        }
+        if (!env.containsKey(SNBConstants.EVALUATION_U6E_AVERAGE_TIME)) {
+            throw new IllegalArgumentException("Couldn't get \"" + SNBConstants.EVALUATION_U6E_AVERAGE_TIME + "\" from the environment. Aborting.");
+        }
+        if (!env.containsKey(SNBConstants.EVALUATION_U7E_AVERAGE_TIME)) {
+            throw new IllegalArgumentException("Couldn't get \"" + SNBConstants.EVALUATION_U7E_AVERAGE_TIME + "\" from the environment. Aborting.");
+        }
+        if (!env.containsKey(SNBConstants.EVALUATION_U8E_AVERAGE_TIME)) {
+            throw new IllegalArgumentException("Couldn't get \"" + SNBConstants.EVALUATION_U8E_AVERAGE_TIME + "\" from the environment. Aborting.");
+        }
+        EVALUATION_U1E_AVERAGE_TIME = finalModel.createProperty(env.get(SNBConstants.EVALUATION_U1E_AVERAGE_TIME));
+        EVALUATION_U2E_AVERAGE_TIME = finalModel.createProperty(env.get(SNBConstants.EVALUATION_U2E_AVERAGE_TIME));
+        EVALUATION_U3E_AVERAGE_TIME = finalModel.createProperty(env.get(SNBConstants.EVALUATION_U3E_AVERAGE_TIME));
+        EVALUATION_U4E_AVERAGE_TIME = finalModel.createProperty(env.get(SNBConstants.EVALUATION_U4E_AVERAGE_TIME));
+        EVALUATION_U5E_AVERAGE_TIME = finalModel.createProperty(env.get(SNBConstants.EVALUATION_U5E_AVERAGE_TIME));
+        EVALUATION_U6E_AVERAGE_TIME = finalModel.createProperty(env.get(SNBConstants.EVALUATION_U6E_AVERAGE_TIME));
+        EVALUATION_U7E_AVERAGE_TIME = finalModel.createProperty(env.get(SNBConstants.EVALUATION_U7E_AVERAGE_TIME));
+        EVALUATION_U8E_AVERAGE_TIME = finalModel.createProperty(env.get(SNBConstants.EVALUATION_U8E_AVERAGE_TIME));
+        
         /* throughput */
         if (!env.containsKey(SNBConstants.EVALUATION_THROUGHPUT)) {
             throw new IllegalArgumentException("Couldn't get \"" + SNBConstants.EVALUATION_THROUGHPUT + "\" from the environment. Aborting.");
@@ -252,12 +310,12 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
 		// write them into a Jena model and send it to the benchmark controller.
 		LOGGER.info("Summarize evaluation...");
 		//TODO: remove this sleeping
-		try {
-			TimeUnit.SECONDS.sleep(30);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		try {
+//			TimeUnit.SECONDS.sleep(30);
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		
         if (experimentUri == null)
             experimentUri = System.getenv().get(Constants.HOBBIT_EXPERIMENT_URI_KEY);
@@ -368,6 +426,38 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
 				(double)totalTimePerQueryType.get("LdbcShortQuery7MessageReplies")/numberOfQueriesPerQueryType.get("LdbcShortQuery7MessageReplies"), XSDDatatype.XSDdouble);
 		if (numberOfQueriesPerQueryType.get("LdbcShortQuery7MessageReplies") > 0)
 			finalModel.add(experiment, EVALUATION_S7E_AVERAGE_TIME, s7eAverageTimeLiteral);
+		Literal u1eAverageTimeLiteral = finalModel.createTypedLiteral(
+				(double)totalTimePerQueryType.get("LdbcUpdate1AddPerson")/numberOfQueriesPerQueryType.get("LdbcUpdate1AddPerson"), XSDDatatype.XSDdouble);
+		if (numberOfQueriesPerQueryType.get("LdbcUpdate1AddPerson") > 0)
+			finalModel.add(experiment, EVALUATION_U1E_AVERAGE_TIME, u1eAverageTimeLiteral);
+		Literal u2eAverageTimeLiteral = finalModel.createTypedLiteral(
+				(double)totalTimePerQueryType.get("LdbcUpdate2AddPostLike")/numberOfQueriesPerQueryType.get("LdbcUpdate2AddPostLike"), XSDDatatype.XSDdouble);
+		if (numberOfQueriesPerQueryType.get("LdbcUpdate2AddPostLike") > 0)
+			finalModel.add(experiment, EVALUATION_U2E_AVERAGE_TIME, u2eAverageTimeLiteral);
+		Literal u3eAverageTimeLiteral = finalModel.createTypedLiteral(
+				(double)totalTimePerQueryType.get("LdbcUpdate3AddCommentLike")/numberOfQueriesPerQueryType.get("LdbcUpdate3AddCommentLike"), XSDDatatype.XSDdouble);
+		if (numberOfQueriesPerQueryType.get("LdbcUpdate3AddCommentLike") > 0)
+			finalModel.add(experiment, EVALUATION_U3E_AVERAGE_TIME, u3eAverageTimeLiteral);
+		Literal u4eAverageTimeLiteral = finalModel.createTypedLiteral(
+				(double)totalTimePerQueryType.get("LdbcUpdate4AddForum")/numberOfQueriesPerQueryType.get("LdbcUpdate4AddForum"), XSDDatatype.XSDdouble);
+		if (numberOfQueriesPerQueryType.get("LdbcUpdate4AddForum") > 0)
+			finalModel.add(experiment, EVALUATION_U4E_AVERAGE_TIME, u4eAverageTimeLiteral);
+		Literal u5eAverageTimeLiteral = finalModel.createTypedLiteral(
+				(double)totalTimePerQueryType.get("LdbcUpdate5AddForumMembership")/numberOfQueriesPerQueryType.get("LdbcUpdate5AddForumMembership"), XSDDatatype.XSDdouble);
+		if (numberOfQueriesPerQueryType.get("LdbcUpdate5AddForumMembership") > 0)
+			finalModel.add(experiment, EVALUATION_U5E_AVERAGE_TIME, u5eAverageTimeLiteral);
+		Literal u6eAverageTimeLiteral = finalModel.createTypedLiteral(
+				(double)totalTimePerQueryType.get("LdbcUpdate6AddPost")/numberOfQueriesPerQueryType.get("LdbcUpdate6AddPost"), XSDDatatype.XSDdouble);
+		if (numberOfQueriesPerQueryType.get("LdbcUpdate6AddPost") > 0)
+			finalModel.add(experiment, EVALUATION_U6E_AVERAGE_TIME, u6eAverageTimeLiteral);
+		Literal u7eAverageTimeLiteral = finalModel.createTypedLiteral(
+				(double)totalTimePerQueryType.get("LdbcUpdate7AddComment")/numberOfQueriesPerQueryType.get("LdbcUpdate7AddComment"), XSDDatatype.XSDdouble);
+		if (numberOfQueriesPerQueryType.get("LdbcUpdate7AddComment") > 0)
+			finalModel.add(experiment, EVALUATION_U7E_AVERAGE_TIME, u7eAverageTimeLiteral);
+		Literal u8eAverageTimeLiteral = finalModel.createTypedLiteral(
+				(double)totalTimePerQueryType.get("LdbcUpdate8AddFriendship")/numberOfQueriesPerQueryType.get("LdbcUpdate8AddFriendship"), XSDDatatype.XSDdouble);
+		if (numberOfQueriesPerQueryType.get("LdbcUpdate8AddFriendship") > 0)
+			finalModel.add(experiment, EVALUATION_U8E_AVERAGE_TIME, u8eAverageTimeLiteral);
 		
 		Literal throughputLiteral = finalModel.createTypedLiteral((double)totalQueries * 1000 / totalMS, XSDDatatype.XSDdouble);
 		finalModel.add(experiment, EVALUATION_THROUGHPUT, throughputLiteral);

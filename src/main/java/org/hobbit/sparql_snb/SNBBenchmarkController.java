@@ -117,6 +117,14 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 				SNBConstants.EVALUATION_S5E_AVERAGE_TIME + "=" + "http://w3id.org/bench#S5EAverageTime",
 				SNBConstants.EVALUATION_S6E_AVERAGE_TIME + "=" + "http://w3id.org/bench#S6EAverageTime",
 				SNBConstants.EVALUATION_S7E_AVERAGE_TIME + "=" + "http://w3id.org/bench#S7EAverageTime",
+				SNBConstants.EVALUATION_U1E_AVERAGE_TIME + "=" + "http://w3id.org/bench#U1EAverageTime",
+				SNBConstants.EVALUATION_U2E_AVERAGE_TIME + "=" + "http://w3id.org/bench#U2EAverageTime",
+				SNBConstants.EVALUATION_U3E_AVERAGE_TIME + "=" + "http://w3id.org/bench#U3EAverageTime",
+				SNBConstants.EVALUATION_U4E_AVERAGE_TIME + "=" + "http://w3id.org/bench#U4EAverageTime",
+				SNBConstants.EVALUATION_U5E_AVERAGE_TIME + "=" + "http://w3id.org/bench#U5EAverageTime",
+				SNBConstants.EVALUATION_U6E_AVERAGE_TIME + "=" + "http://w3id.org/bench#U6EAverageTime",
+				SNBConstants.EVALUATION_U7E_AVERAGE_TIME + "=" + "http://w3id.org/bench#U7EAverageTime",
+				SNBConstants.EVALUATION_U8E_AVERAGE_TIME + "=" + "http://w3id.org/bench#U8EAverageTime",
 				SNBConstants.EVALUATION_THROUGHPUT + "=" + "http://w3id.org/bench#throughput"
 		};
 
