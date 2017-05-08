@@ -12,23 +12,30 @@ import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 import org.aksw.jena_sparql_api.core.QueryExecutionFactory;
+import org.aksw.jena_sparql_api.core.UpdateExecutionFactory;
+import org.aksw.jena_sparql_api.core.UpdateExecutionFactoryHttp;
+import org.aksw.jena_sparql_api.core.utils.UpdateRequestUtils;
 import org.aksw.jena_sparql_api.http.QueryExecutionFactoryHttp;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetFormatter;
+import org.apache.jena.update.UpdateRequest;
 import org.hobbit.core.Commands;
 import org.hobbit.core.components.AbstractSystemAdapter;
 import org.hobbit.sparql_snb.util.VirtuosoSystemAdapterConstants;
 import org.hobbit.core.rabbit.RabbitMQUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.http.client.HttpClient;
+import org.apache.jena.atlas.web.auth.HttpAuthenticator;
+import org.apache.jena.atlas.web.auth.SimpleAuthenticator;
 
 public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
 	
     private static final Logger LOGGER = LoggerFactory.getLogger(VirtuosoSystemAdapter.class);
     private String virtuosoContName = "localhost";
     private QueryExecutionFactory queryExecFactory;
-//    private UpdateExecutionFactory updateExecFactory;
+    private UpdateExecutionFactory updateExecFactory;
 
     private int dataTerminationCount = 0;
     private int numberOfDataGenerators;
@@ -71,27 +78,65 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
     	LOGGER.info("SPARQL query received.");
 		String queryString = RabbitMQUtils.readString(data);
 		
-		//TODO: Add updates
-		
-    	// Create a QueryExecution object from a query string ...
-    	QueryExecution qe = queryExecFactory.createQueryExecution(queryString);
-    	// and run it.
-    	try {
-    		ResultSet results = qe.execSelect();
-    		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    		ResultSetFormatter.outputAsJSON(outputStream, results);
-    		try {
-    			this.sendResultToEvalStorage(taskId, outputStream.toByteArray());
-    		} catch (IOException e) {
-    			LOGGER.error("Got an exception while sending results.", e);
-    		}
+		if (queryString.contains("INSERT DATA")) {
+			
+			//TODO: Virtuoso hack
+			queryString = queryString.replaceFirst("INSERT DATA", "INSERT");
+			queryString += "WHERE { }\n";
+			
+			/*
+			//queryString = "INSERT DATA { GRAPH <http://example/bookStore> { <mirko> <p1> <o1> . } }" ; yes
+			//queryString = "INSERT DATA {  <mirko> <p1> <o1> . } " ; no
+			//queryString = "INSERT INTO <sib> {  <mirko> <p1> <o1> . } " ; no
+			//queryString = "INSERT { GRAPH <http://example/bookStore> { <mirko> <p1> <o1> . } }" ; no
+			//queryString = "INSERT { GRAPH <http://example/bookStore> { <mirko> <p1> <o1> . } } WHERE { }" ; yes
+			*/
+						
+	    	HttpAuthenticator auth = new SimpleAuthenticator("dba", "dba".toCharArray());
+	    	updateExecFactory = new UpdateExecutionFactoryHttp("http://" + virtuosoContName + ":8890/sparql-auth", auth);
+	    	UpdateRequest updateRequest = UpdateRequestUtils.parse(queryString);
+            try {
+            	updateExecFactory.createUpdateProcessor(updateRequest).execute();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+			
+			
+			//TODO: remove this
+//			try {
+//				TimeUnit.SECONDS.sleep(30);
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+			
+			try {
+				this.sendResultToEvalStorage(taskId, RabbitMQUtils.writeString(""));
+			} catch (IOException e) {
+				LOGGER.error("Got an exception while sending results.", e);
+			}
+		}
+		else {
+			// Create a QueryExecution object from a query string ...
+			QueryExecution qe = queryExecFactory.createQueryExecution(queryString);
+			// and run it.
+			try {
+				ResultSet results = qe.execSelect();
+				ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+				ResultSetFormatter.outputAsJSON(outputStream, results);
+				try {
+					this.sendResultToEvalStorage(taskId, outputStream.toByteArray());
+				} catch (IOException e) {
+					LOGGER.error("Got an exception while sending results.", e);
+				}
 
-    	} catch (Exception e) {
-    		e.printStackTrace();
-    	} finally {
-    		qe.close();
-    	}
-    	LOGGER.info("SELECT SPARQL query has been processed.");
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				qe.close();
+			}
+			LOGGER.info("SELECT SPARQL query has been processed.");
+		}
 	}
 	
     @Override
@@ -107,12 +152,6 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
 		File theDir = new File(datasetsFolderName);
 		theDir.mkdir();
     	
-//    	String[] envVariablesVirtuoso = new String[] {
-//    			"SPARQL_UPDATE=true",
-//    			"DEFAULT_GRAPH=sib"
-//    			};
-//    	virtuosoContName = this.createContainer("tenforce/virtuoso:latest", envVariablesVirtuoso);
-//    	virtuosoContName = "localhost";
     	queryExecFactory = new QueryExecutionFactoryHttp("http://" + virtuosoContName + ":8890/sparql");
     	
 //
@@ -178,13 +217,9 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
     public void close() throws IOException {
     	try {
     		queryExecFactory.close();
+    		updateExecFactory.close();
     	} catch (Exception e) {
     	}
-//    	try {
-//    		updateExecFactory.close();
-//    	} catch (Exception e) {
-//    	}
-//    	this.stopContainer(virtuosoContName);
     	super.close();
     	LOGGER.info("Virtuoso has stopped.");
     }

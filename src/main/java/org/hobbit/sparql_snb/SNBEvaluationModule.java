@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
@@ -250,12 +252,12 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
 		// write them into a Jena model and send it to the benchmark controller.
 		LOGGER.info("Summarize evaluation...");
 		//TODO: remove this sleeping
-//		try {
-//			TimeUnit.SECONDS.sleep(30);
-//		} catch (InterruptedException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		try {
+			TimeUnit.SECONDS.sleep(30);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
         if (experimentUri == null)
             experimentUri = System.getenv().get(Constants.HOBBIT_EXPERIMENT_URI_KEY);

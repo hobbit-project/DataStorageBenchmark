@@ -72,6 +72,8 @@ public class SNBDataGenerator extends AbstractDataGenerator {
     	try { 
 			InputStream is = new URL(datasetFiles).openStream();
 			String [] files = IOUtils.toString(is).split("\n");
+			//TODO: remove the following:
+			files = new String[0];
 			is.close();
 			
     		for (String remoteFile : files) {
@@ -118,6 +120,7 @@ public class SNBDataGenerator extends AbstractDataGenerator {
         			while (current2 < lines.length && !lines[current2].startsWith("Ldbc"))
         				current2++;
         			msg = StringUtils.join(Arrays.copyOfRange(lines, current1, current2), "\n");
+        			LOGGER.info(msg);
         			bytesArray = RabbitMQUtils.writeString(msg);
         			sendDataToTaskGenerator(bytesArray);
         			current1 = current2;
