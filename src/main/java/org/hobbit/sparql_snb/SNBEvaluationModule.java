@@ -60,9 +60,12 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
 	private Property EVALUATION_U7E_AVERAGE_TIME = null;
 	private Property EVALUATION_U8E_AVERAGE_TIME = null;
 	
+	/* Property for loading time" */
+	private Property EVALUATION_LOADING_TIME = null;
+	
 	/* Property for throughput" */
 	private Property EVALUATION_THROUGHPUT = null;
-	
+
 	
     private ArrayList<String> wrongAnswers = new ArrayList<>();
     private Map<String, ArrayList<Long> > executionTimes = new HashMap<>();
@@ -274,6 +277,12 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
         EVALUATION_U7E_AVERAGE_TIME = finalModel.createProperty(env.get(SNBConstants.EVALUATION_U7E_AVERAGE_TIME));
         EVALUATION_U8E_AVERAGE_TIME = finalModel.createProperty(env.get(SNBConstants.EVALUATION_U8E_AVERAGE_TIME));
         
+        /* loading time */
+        if (!env.containsKey(SNBConstants.EVALUATION_LOADING_TIME)) {
+            throw new IllegalArgumentException("Couldn't get \"" + SNBConstants.EVALUATION_LOADING_TIME + "\" from the environment. Aborting.");
+        }
+        EVALUATION_LOADING_TIME = finalModel.createProperty(env.get(SNBConstants.EVALUATION_LOADING_TIME));
+        
         /* throughput */
         if (!env.containsKey(SNBConstants.EVALUATION_THROUGHPUT)) {
             throw new IllegalArgumentException("Couldn't get \"" + SNBConstants.EVALUATION_THROUGHPUT + "\" from the environment. Aborting.");
@@ -284,10 +293,14 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
 	@Override
 	protected void evaluateResponse(byte[] expectedData, byte[] receivedData, long taskSentTimestamp,
 			long responseReceivedTimestamp) throws Exception {
-		LOGGER.info("Evaluate response");
 		String eStr = RabbitMQUtils.readString(expectedData);
     	String rStr = RabbitMQUtils.readString(receivedData);
     	String [] lines = eStr.split("\n");
+    	if (eStr.equals("LOADING STARTED")) {
+    		executionTimes.put("LoadingTime", new ArrayList<Long>());
+    		executionTimes.get("LoadingTime").add(responseReceivedTimestamp - taskSentTimestamp);
+    		return;
+    	}
         //String taskId = lines[0];
         String type = lines[0].replaceAll("[{].*", "");
         String eAnswers = eStr.replaceFirst(".*\n", "");
@@ -457,6 +470,10 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
 				(double)totalTimePerQueryType.get("LdbcUpdate8AddFriendship")/numberOfQueriesPerQueryType.get("LdbcUpdate8AddFriendship"), XSDDatatype.XSDdouble);
 		if (numberOfQueriesPerQueryType.get("LdbcUpdate8AddFriendship") > 0)
 			finalModel.add(experiment, EVALUATION_U8E_AVERAGE_TIME, u8eAverageTimeLiteral);
+		
+		Literal loadingTimeLiteral = finalModel.createTypedLiteral(
+				(double)totalTimePerQueryType.get("LoadingTime")/numberOfQueriesPerQueryType.get("LoadingTime"), XSDDatatype.XSDdouble);
+		finalModel.add(experiment, EVALUATION_LOADING_TIME, loadingTimeLiteral);
 		
 		Literal throughputLiteral = finalModel.createTypedLiteral((double)totalQueries * 1000 / totalMS, XSDDatatype.XSDdouble);
 		finalModel.add(experiment, EVALUATION_THROUGHPUT, throughputLiteral);

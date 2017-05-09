@@ -125,6 +125,7 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 				SNBConstants.EVALUATION_U6E_AVERAGE_TIME + "=" + "http://w3id.org/bench#U6EAverageTime",
 				SNBConstants.EVALUATION_U7E_AVERAGE_TIME + "=" + "http://w3id.org/bench#U7EAverageTime",
 				SNBConstants.EVALUATION_U8E_AVERAGE_TIME + "=" + "http://w3id.org/bench#U8EAverageTime",
+				SNBConstants.EVALUATION_LOADING_TIME + "=" + "http://w3id.org/bench#loadingTime",
 				SNBConstants.EVALUATION_THROUGHPUT + "=" + "http://w3id.org/bench#throughput"
 		};
 

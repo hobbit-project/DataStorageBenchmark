@@ -1,16 +1,12 @@
 package org.hobbit.sparql_snb.systems;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
-
 import org.aksw.jena_sparql_api.core.QueryExecutionFactory;
 import org.aksw.jena_sparql_api.core.UpdateExecutionFactory;
 import org.aksw.jena_sparql_api.core.UpdateExecutionFactoryHttp;
@@ -26,6 +22,7 @@ import org.hobbit.sparql_snb.util.VirtuosoSystemAdapterConstants;
 import org.hobbit.core.rabbit.RabbitMQUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.commons.io.FileUtils;
 import org.apache.jena.atlas.web.auth.HttpAuthenticator;
 import org.apache.jena.atlas.web.auth.SimpleAuthenticator;
 
@@ -70,6 +67,13 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+//		try {
+//			TimeUnit.SECONDS.sleep(1);
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 	}
 
 	@Override
@@ -102,12 +106,12 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
 			
 			
 			//TODO: remove this
-			try {
-				TimeUnit.SECONDS.sleep(30);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+//			try {
+//				TimeUnit.SECONDS.sleep(30);
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
 			
 			try {
 				this.sendResultToEvalStorage(taskId, RabbitMQUtils.writeString(""));
@@ -167,20 +171,15 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
         LOGGER.info("received command {}", Commands.toString(command));
     	if (VirtuosoSystemAdapterConstants.BULK_LOAD_DATA_GEN_FINISHED == command) {
     		LOGGER.info("Bulk phase begins");
-
-    		try {
-    			TimeUnit.SECONDS.sleep(2);
-    		} catch (InterruptedException e) {
-    			// TODO Auto-generated catch block
-    			e.printStackTrace();
-    		}
+    		
     		loadDataset();
     		
     		try {
-//    			String datasetsFolderName = System.getProperty("user.dir") + File.separator + "datasets"; 
-//    			File theDir = new File(datasetsFolderName);
-//    			FileUtils.deleteDirectory(theDir);
+    			String datasetsFolderName = System.getProperty("user.dir") + File.separator + "datasets"; 
+    			File theDir = new File(datasetsFolderName);
+    			FileUtils.deleteDirectory(theDir);
     			sendToCmdQueue(VirtuosoSystemAdapterConstants.BULK_LOADING_DATA_FINISHED);
+    			this.sendResultToEvalStorage("0", RabbitMQUtils.writeString("LOADING STARTED"));
     		} catch (IOException e) {
     			e.printStackTrace();
     		}
@@ -196,13 +195,12 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
     	Process p;
     	try {
     		p = new ProcessBuilder(command).redirectErrorStream(true).start();
-    		BufferedReader reader = 
-                    new BufferedReader(new InputStreamReader(p.getInputStream()));
+//    		BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
     		p.waitFor();
-    		String line = null;
-    		while ( (line = reader.readLine()) != null) {
-    			LOGGER.info(line);
-    		}
+//    		String line = null;
+//    		while ( (line = reader.readLine()) != null) {
+//    			LOGGER.info(line);
+//    		}
     	} catch (IOException e) {
     		// TODO Auto-generated catch block
     		e.printStackTrace();

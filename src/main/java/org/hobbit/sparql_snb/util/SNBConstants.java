@@ -40,6 +40,7 @@ public final class SNBConstants {
 	public static final String EVALUATION_U7E_AVERAGE_TIME = "evaluation_update7_execution_average_time";
 	public static final String EVALUATION_U8E_AVERAGE_TIME = "evaluation_update8_execution_average_time";
 	
+	public static final String EVALUATION_LOADING_TIME = "evaluation_loading_time";
 	public static final String EVALUATION_THROUGHPUT = "evaluation_throughput";
 	
 }

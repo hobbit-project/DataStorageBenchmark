@@ -73,7 +73,7 @@ public class SNBDataGenerator extends AbstractDataGenerator {
 			InputStream is = new URL(datasetFiles).openStream();
 			String [] files = IOUtils.toString(is).split("\n");
 			//TODO: remove the following:
-			files = new String[0];
+			//files = new String[0];
 			is.close();
 			
     		for (String remoteFile : files) {
@@ -91,10 +91,11 @@ public class SNBDataGenerator extends AbstractDataGenerator {
     			outputStream.write(fileContent);
     			bytesArray = outputStream.toByteArray();
     			sendDataToSystemAdapter(bytesArray);           	
-
-    			LOGGER.info("File " + remoteFile + " has been downloaded successfully and sent.");
     			inputStream.close();
+    			
+    			LOGGER.info("File " + remoteFile + " has been downloaded successfully and sent.");
     		}
+    		sendDataToTaskGenerator(RabbitMQUtils.writeString("LOADING STARTED"));
     		sendToCmdQueue(VirtuosoSystemAdapterConstants.BULK_LOAD_DATA_GEN_FINISHED);
     	} catch (IOException e) {
     		// TODO Auto-generated catch block
