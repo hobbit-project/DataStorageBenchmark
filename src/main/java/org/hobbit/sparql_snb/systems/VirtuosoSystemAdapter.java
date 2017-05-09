@@ -26,7 +26,6 @@ import org.hobbit.sparql_snb.util.VirtuosoSystemAdapterConstants;
 import org.hobbit.core.rabbit.RabbitMQUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.http.client.HttpClient;
 import org.apache.jena.atlas.web.auth.HttpAuthenticator;
 import org.apache.jena.atlas.web.auth.SimpleAuthenticator;
 
@@ -103,12 +102,12 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
 			
 			
 			//TODO: remove this
-//			try {
-//				TimeUnit.SECONDS.sleep(30);
-//			} catch (InterruptedException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
+			try {
+				TimeUnit.SECONDS.sleep(30);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			
 			try {
 				this.sendResultToEvalStorage(taskId, RabbitMQUtils.writeString(""));

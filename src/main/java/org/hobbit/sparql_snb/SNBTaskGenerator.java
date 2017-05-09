@@ -2,6 +2,7 @@ package org.hobbit.sparql_snb;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -11,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -66,6 +68,12 @@ public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
 	Pattern replyToCommentIdPattern = Pattern.compile("replyToCommentId=([^,]+)");
 	Pattern gifPattern = Pattern.compile("gif=([^,]*)");
 	
+    private HashMap<Long, String> placeMap;
+    private HashMap<Long, String> companyMap;
+    private HashMap<Long, String> universityMap;
+    private HashMap<Long, String> tagMap;
+
+	
 	public SNBTaskGenerator() {
 		
 	}
@@ -87,7 +95,31 @@ public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
             LOGGER.error("Couldn't get \"" + SNBConstants.GENERATOR_NUMBER_OF_OPERATIONS + "\" from the properties. Aborting.");
             System.exit(1);
         }
-    	numberOfOperations = Integer.parseInt(env.get(SNBConstants.GENERATOR_NUMBER_OF_OPERATIONS));	
+    	numberOfOperations = Integer.parseInt(env.get(SNBConstants.GENERATOR_NUMBER_OF_OPERATIONS));
+    	
+    	placeMap = readMappings("mappings/places.txt");
+    	companyMap = readMappings("mappings/companies.txt");
+    	universityMap = readMappings("mappings/universities.txt");
+    	tagMap = readMappings("mappings/tags.txt");
+	}
+
+	private HashMap<Long, String> readMappings(String path) {
+		HashMap<Long, String> map = new HashMap<>();
+    	try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+    	    String line;
+    	    while ((line = br.readLine()) != null) {
+    	       String [] parts = line.split(" - ");
+    	       map.put(Long.valueOf(parts[0]), parts[1]);
+    	    }
+    	    br.close();
+    	} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	return map;
 	}
 
 	@Override
@@ -201,16 +233,19 @@ public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
 			List<String> emails = new ArrayList<String>(Arrays.asList(extractWord(arguments, emailsPattern).split(", ")));
 			if (emails.size() == 1 && emails.get(0).equals(""))
 				emails.clear();
-			List<String> tagIds = new ArrayList<String>(Arrays.asList(extractWord(arguments, tagIdsPattern).split(", ")));
-			if (tagIds.size() == 1 && tagIds.get(0).equals(""))
-				tagIds.clear();
+			List<String> tagIds1 = new ArrayList<String>(Arrays.asList(extractWord(arguments, tagIdsPattern).split(", ")));
+			if (tagIds1.size() == 1 && tagIds1.get(0).equals(""))
+				tagIds1.clear();
+			List<Long> tagIds = new ArrayList<Long>();
+			for (String s : tagIds1)
+				tagIds.add(Long.valueOf(s));
 			List<String> universities = new ArrayList<String>(Arrays.asList(extractWord(arguments, studyAtPattern).split("\\}, ")));
 			if (universities.size() == 1 && universities.get(0).equals(""))
 				universities.clear();
-			List<Integer> studyAtOrgIds = new ArrayList<Integer>();
+			List<Long> studyAtOrgIds = new ArrayList<Long>();
 			List<Integer> studyAtYears = new ArrayList<Integer>();
 				for (String u : universities) {
-					studyAtOrgIds.add(Integer.parseInt(extractWord(u, organizationIdPattern)));
+					studyAtOrgIds.add(Long.parseLong(extractWord(u, organizationIdPattern)));
 					studyAtYears.add(Integer.parseInt(extractWord(u, yearPattern)));
 				}
 			List<String> companies = new ArrayList<String>(Arrays.asList(extractWord(arguments, workAtPattern).split("\\}, ")));
@@ -288,9 +323,12 @@ public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
 			DateFormat format1 = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
 			Date creationDate = format1.parse(extractWord(arguments, creationDatePattern));
 			long moderatorPersonId = Long.parseLong(extractWord(arguments, moderatorPersonIdPattern));
-			List<String> tagIds = new ArrayList<String>(Arrays.asList(extractWord(arguments, tagIdsPattern).split(", ")));
-			if (tagIds.size() == 1 && tagIds.get(0).equals(""))
-				tagIds.clear();
+			List<String> tagIds1 = new ArrayList<String>(Arrays.asList(extractWord(arguments, tagIdsPattern).split(", ")));
+			if (tagIds1.size() == 1 && tagIds1.get(0).equals(""))
+				tagIds1.clear();
+			List<Long> tagIds = new ArrayList<Long>();
+			for (String s : tagIds1)
+				tagIds.add(Long.valueOf(s));
 			
 			String forumUri = "<http://www.ldbc.eu/ldbc_socialnet/1.0/data/forum" + String.format("%020d", forumId) + ">";
 			String moderatorUri = "<http://www.ldbc.eu/ldbc_socialnet/1.0/data/pers" + String.format("%020d", moderatorPersonId) + ">";
@@ -332,9 +370,12 @@ public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
 			long authorPersonId = Long.parseLong(extractWord(arguments, authorPersonIdPattern));
 			long forumId = Long.parseLong(extractWord(arguments, forumIdPattern));
 			Long countryId = Long.parseLong(extractWord(arguments, countryIdPattern));
-			List<String> tagIds = new ArrayList<String>(Arrays.asList(extractWord(arguments, tagIdsPattern).split(", ")));
-			if (tagIds.size() == 1 && tagIds.get(0).equals(""))
-				tagIds.clear();
+			List<String> tagIds1 = new ArrayList<String>(Arrays.asList(extractWord(arguments, tagIdsPattern).split(", ")));
+			if (tagIds1.size() == 1 && tagIds1.get(0).equals(""))
+				tagIds1.clear();
+			List<Long> tagIds = new ArrayList<Long>();
+			for (String s : tagIds1)
+				tagIds.add(Long.valueOf(s));
 			List<String> mentionedIds = new ArrayList<String>(Arrays.asList(extractWord(arguments, mentionedIdsPattern).split(", ")));
 			if (mentionedIds.size() == 1 && mentionedIds.get(0).equals(""))
 				mentionedIds.clear();
@@ -388,9 +429,12 @@ public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
 			Long countryId = Long.parseLong(extractWord(arguments, countryIdPattern));
 			Long replyToPostId = Long.parseLong(extractWord(arguments, replyToPostIdPattern));
 			Long replyToCommentId = Long.parseLong(extractWord(arguments, replyToCommentIdPattern));
-			List<String> tagIds = new ArrayList<String>(Arrays.asList(extractWord(arguments, tagIdsPattern).split(", ")));
-			if (tagIds.size() == 1 && tagIds.get(0).equals(""))
-				tagIds.clear();
+			List<String> tagIds1 = new ArrayList<String>(Arrays.asList(extractWord(arguments, tagIdsPattern).split(", ")));
+			if (tagIds1.size() == 1 && tagIds1.get(0).equals(""))
+				tagIds1.clear();
+			List<Long> tagIds = new ArrayList<Long>();
+			for (String s : tagIds1)
+				tagIds.add(Long.valueOf(s));
 			List<String> mentionedIds = new ArrayList<String>(Arrays.asList(extractWord(arguments, mentionedIdsPattern).split(", ")));
 			if (mentionedIds.size() == 1 && mentionedIds.get(0).equals(""))
 				mentionedIds.clear();
@@ -454,24 +498,20 @@ public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
 	}
 
 
-	private String companyUri(Long long1) {
-		// TODO Auto-generated method stub
-		return null;
+	private String companyUri(long long1) {
+		return companyMap.get(long1);
 	}
 
-	private String universityUri(int int1) {
-		// TODO Auto-generated method stub
-		return null;
+	private String universityUri(long long1) {
+		return universityMap.get(long1);
 	}
 
-	private String tagUri(String string) {
-		// TODO Auto-generated method stub
-		return null;
+	private String tagUri(long long1) {
+		return tagMap.get(long1);
 	}
 
-	private String placeUri(long cityId) {
-		// TODO Auto-generated method stub
-		return null;
+	private String placeUri(long long1) {
+		return placeMap.get(long1);
 	}
 
 	private String extractWord(String arguments, Pattern p) {
