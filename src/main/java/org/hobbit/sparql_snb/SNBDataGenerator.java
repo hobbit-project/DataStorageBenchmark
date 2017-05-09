@@ -30,11 +30,13 @@ public class SNBDataGenerator extends AbstractDataGenerator {
     
     @Override
     public void init() throws Exception {
+    	LOGGER.info("Initialization begins.");
         // Always init the super class first!
         super.init();
 
 		// Your initialization code comes here...
         internalInit();
+        LOGGER.info("Initialization is over.");
     }
     
 	private void internalInit() {
@@ -121,7 +123,6 @@ public class SNBDataGenerator extends AbstractDataGenerator {
         			while (current2 < lines.length && !lines[current2].startsWith("Ldbc"))
         				current2++;
         			msg = StringUtils.join(Arrays.copyOfRange(lines, current1, current2), "\n");
-        			LOGGER.info(msg);
         			bytesArray = RabbitMQUtils.writeString(msg);
         			sendDataToTaskGenerator(bytesArray);
         			current1 = current2;

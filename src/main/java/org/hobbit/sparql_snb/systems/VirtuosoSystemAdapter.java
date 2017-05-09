@@ -16,7 +16,6 @@ import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.update.UpdateRequest;
-import org.hobbit.core.Commands;
 import org.hobbit.core.components.AbstractSystemAdapter;
 import org.hobbit.sparql_snb.util.VirtuosoSystemAdapterConstants;
 import org.hobbit.core.rabbit.RabbitMQUtils;
@@ -78,7 +77,6 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
 
 	@Override
 	public void receiveGeneratedTask(String taskId, byte[] data) {
-    	LOGGER.info("SPARQL query received.");
 		String queryString = RabbitMQUtils.readString(data);
 		
 		if (queryString.contains("INSERT DATA")) {
@@ -138,7 +136,6 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
 			} finally {
 				qe.close();
 			}
-			LOGGER.info("SELECT SPARQL query has been processed.");
 		}
 	}
 	
@@ -168,7 +165,7 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
     
     @Override
     public void receiveCommand(byte command, byte[] data) {
-        LOGGER.info("received command {}", Commands.toString(command));
+    	//LOGGER.info("received command {}", Commands.toString(command));
     	if (VirtuosoSystemAdapterConstants.BULK_LOAD_DATA_GEN_FINISHED == command) {
     		LOGGER.info("Bulk phase begins");
     		
