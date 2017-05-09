@@ -3,6 +3,7 @@ FROM java
 ADD target/sparql-snb-1.0.0-SNAPSHOT.jar /sparql-snb/sparql-snb.jar
 
 COPY src/main/resources/snb_queries /sparql-snb/snb_queries
+COPY src/main/resources/mappings /sparql-snb/mappings
 
 WORKDIR /sparql-snb
 
