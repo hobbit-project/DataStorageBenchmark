@@ -123,8 +123,6 @@ public class SNBDataGenerator extends AbstractDataGenerator {
         		InputStream inputStream1 = new URL(tasksFile).openStream();
         		BufferedReader inputStream2 = new BufferedReader(new InputStreamReader(new URL(answersFile).openStream()));
         		byte[] bytesArray = null;
-
-//        		String msg = null;
         		String fileContent = IOUtils.toString(inputStream1);
         		String [] lines = fileContent.split("\n");
         		for (int i = 0; i < lines.length && i < numberOfOperations; i++) {
@@ -138,20 +136,7 @@ public class SNBDataGenerator extends AbstractDataGenerator {
         			}
         			bytesArray = RabbitMQUtils.writeString(builder.toString());
         			sendDataToTaskGenerator(bytesArray);
-        			LOGGER.info(builder.toString());
         		}
-//        		int current1 = 0;
-//        		int current2 = current1 + 1;
-//        		while (current1 < lines.length) {
-//        			while (current2 < lines.length && !lines[current2].startsWith("Ldbc"))
-//        				current2++;
-//        			msg = StringUtils.join(Arrays.copyOfRange(lines, current1, current2), "\n");
-//        			bytesArray = RabbitMQUtils.writeString(msg);
-//        			sendDataToTaskGenerator(bytesArray);
-//        			current1 = current2;
-//        			current2 = current1 + 1;
-//        		}
-
         		LOGGER.info("Files with tasks have been downloaded successfully and sent.");
         		inputStream1.close();
         		inputStream2.close();
