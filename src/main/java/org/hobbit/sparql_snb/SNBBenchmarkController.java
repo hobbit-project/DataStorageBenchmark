@@ -80,12 +80,15 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 
 		// Create data generators
 		int numberOfDataGenerators = 1;
-		String[] envVariables = new String[]{SNBConstants.GENERATOR_SCALE_FACTOR + "=" + scaleFactor};
+		String[] envVariables = new String[]{
+				SNBConstants.GENERATOR_SCALE_FACTOR + "=" + scaleFactor,
+				SNBConstants.GENERATOR_NUMBER_OF_OPERATIONS + "=" + numberOfOperations
+		};
 		createDataGenerators(DATA_GENERATOR_CONTAINER_IMAGE, numberOfDataGenerators, envVariables);
 
 		// Create task generators
 		int numberOfTaskGenerators = 1;
-		envVariables = new String[]{SNBConstants.GENERATOR_NUMBER_OF_OPERATIONS + "=" + numberOfOperations};
+		envVariables = null;
 		createTaskGenerators(TASK_GENERATOR_CONTAINER_IMAGE, numberOfTaskGenerators, envVariables);
 
 		// Create evaluation storage
@@ -126,7 +129,8 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 				SNBConstants.EVALUATION_U7E_AVERAGE_TIME + "=" + "http://w3id.org/bench#U7EAverageTime",
 				SNBConstants.EVALUATION_U8E_AVERAGE_TIME + "=" + "http://w3id.org/bench#U8EAverageTime",
 				SNBConstants.EVALUATION_LOADING_TIME + "=" + "http://w3id.org/bench#loadingTime",
-				SNBConstants.EVALUATION_THROUGHPUT + "=" + "http://w3id.org/bench#throughput"
+				SNBConstants.EVALUATION_THROUGHPUT + "=" + "http://w3id.org/bench#throughput",
+				SNBConstants.EVALUATION_NUMBER_OF_WRONG_ANSWERS + "=" + "http://w3id.org/bench#numberOfWrongAnswers"
 		};
 
 		// Wait for all components to finish their initialization

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.rdf.model.Literal;
@@ -62,10 +63,13 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
 	
 	/* Property for loading time" */
 	private Property EVALUATION_LOADING_TIME = null;
+	long loading_time;
 	
 	/* Property for throughput" */
 	private Property EVALUATION_THROUGHPUT = null;
-
+	
+	/* Property for number of wrong answers" */
+	private Property EVALUATION_NUMBER_OF_WRONG_ANSWERS = null;
 	
     private ArrayList<String> wrongAnswers = new ArrayList<>();
     private Map<String, ArrayList<Long> > executionTimes = new HashMap<>();
@@ -288,6 +292,12 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
             throw new IllegalArgumentException("Couldn't get \"" + SNBConstants.EVALUATION_THROUGHPUT + "\" from the environment. Aborting.");
         }
         EVALUATION_THROUGHPUT = finalModel.createProperty(env.get(SNBConstants.EVALUATION_THROUGHPUT));
+        
+        /* number of wrong answers */
+        if (!env.containsKey(SNBConstants.EVALUATION_NUMBER_OF_WRONG_ANSWERS)) {
+            throw new IllegalArgumentException("Couldn't get \"" + SNBConstants.EVALUATION_NUMBER_OF_WRONG_ANSWERS + "\" from the environment. Aborting.");
+        }
+        EVALUATION_NUMBER_OF_WRONG_ANSWERS = finalModel.createProperty(env.get(SNBConstants.EVALUATION_NUMBER_OF_WRONG_ANSWERS));
 	}
 
 	@Override
@@ -297,19 +307,19 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
     	String rStr = RabbitMQUtils.readString(receivedData);
     	String [] lines = eStr.split("\n");
     	if (eStr.equals("LOADING STARTED")) {
-    		executionTimes.put("LoadingTime", new ArrayList<Long>());
-    		executionTimes.get("LoadingTime").add(responseReceivedTimestamp - taskSentTimestamp);
+    		loading_time = responseReceivedTimestamp - taskSentTimestamp;
     		return;
     	}
         //String taskId = lines[0];
         String type = lines[0].replaceAll("[{].*", "");
-        String eAnswers = eStr.replaceFirst(".*\n", "");
-        		        
-        if (!eAnswers.trim().equals(rStr.trim())) {
-        	wrongAnswers.add(lines[0] + " : " + eAnswers.length() + " - " + rStr.length());
-        	wrongAnswers.add(eAnswers.trim());
-        	wrongAnswers.add(rStr.trim());
-        }
+        String eAnswers = eStr.replaceFirst("[^\n]*\n", "");
+        
+        if (!type.startsWith("LdbcUpdate"))
+        	if (!eAnswers.trim().equals(rStr.trim())) {
+        		wrongAnswers.add(lines[0] + " : " + eAnswers.length() + " - " + rStr.length());
+        		wrongAnswers.add(eAnswers.trim());
+        		wrongAnswers.add(rStr.trim());
+        	}
         
         if (!executionTimes.containsKey(type))
         	executionTimes.put(type, new ArrayList<Long>());
@@ -322,12 +332,12 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
 		// write them into a Jena model and send it to the benchmark controller.
 		LOGGER.info("Summarize evaluation...");
 		//TODO: remove this sleeping
-//		try {
-//			TimeUnit.SECONDS.sleep(30);
-//		} catch (InterruptedException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		try {
+			TimeUnit.SECONDS.sleep(30);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
         if (experimentUri == null)
             experimentUri = System.getenv().get(Constants.HOBBIT_EXPERIMENT_URI_KEY);
@@ -350,6 +360,7 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
     		    		    		
     		LOGGER.info(entry.getKey() + "-" + ((double)totalMSPerQueryType)/ entry.getValue().size());
 		}
+		LOGGER.info("Loading time - " + loading_time);
 		
 		Literal qeAverageTimeLiteral = finalModel.createTypedLiteral((double)totalMS / totalQueries, XSDDatatype.XSDdouble);
 		finalModel.add(experiment, EVALUATION_QE_AVERAGE_TIME, qeAverageTimeLiteral);
@@ -471,12 +482,14 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
 		if (numberOfQueriesPerQueryType.get("LdbcUpdate8AddFriendship") > 0)
 			finalModel.add(experiment, EVALUATION_U8E_AVERAGE_TIME, u8eAverageTimeLiteral);
 		
-		Literal loadingTimeLiteral = finalModel.createTypedLiteral(
-				(double)totalTimePerQueryType.get("LoadingTime")/numberOfQueriesPerQueryType.get("LoadingTime"), XSDDatatype.XSDdouble);
+		Literal loadingTimeLiteral = finalModel.createTypedLiteral(loading_time, XSDDatatype.XSDlong);
 		finalModel.add(experiment, EVALUATION_LOADING_TIME, loadingTimeLiteral);
 		
 		Literal throughputLiteral = finalModel.createTypedLiteral((double)totalQueries * 1000 / totalMS, XSDDatatype.XSDdouble);
 		finalModel.add(experiment, EVALUATION_THROUGHPUT, throughputLiteral);
+		
+		Literal nbrWrngAnswrsLiteral = finalModel.createTypedLiteral(wrongAnswers.size()/3, XSDDatatype.XSDlong);
+		finalModel.add(experiment, EVALUATION_NUMBER_OF_WRONG_ANSWERS, nbrWrngAnswrsLiteral);
 
 		// Log the wrong answers
     	for (int i = 0; i < wrongAnswers.size(); i+=3) {

@@ -15,21 +15,18 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.hobbit.core.components.AbstractSequencingTaskGenerator;
 import org.hobbit.core.rabbit.RabbitMQUtils;
-import org.hobbit.sparql_snb.util.SNBConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SNBTaskGenerator.class);
-	private int numberOfOperations;
 	
 	Pattern personIdPattern = Pattern.compile("personId=([^,]+)");
 	Pattern person1IdPattern = Pattern.compile("person1Id=([^,]+)");
@@ -88,15 +85,6 @@ public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
     }
     
     private void internalInit() {
-    	Map<String, String> env = System.getenv();
-    	
-    	// Number of operations
-    	if (!env.containsKey(SNBConstants.GENERATOR_NUMBER_OF_OPERATIONS)) {
-            LOGGER.error("Couldn't get \"" + SNBConstants.GENERATOR_NUMBER_OF_OPERATIONS + "\" from the properties. Aborting.");
-            System.exit(1);
-        }
-    	numberOfOperations = Integer.parseInt(env.get(SNBConstants.GENERATOR_NUMBER_OF_OPERATIONS));
-    	
     	placeMap = readMappings("mappings/places.txt");
     	companyMap = readMappings("mappings/companies.txt");
     	universityMap = readMappings("mappings/universities.txt");
@@ -135,11 +123,6 @@ public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
 	@Override
 	protected void generateTask(byte[] data) throws Exception {
         String taskIdString = getNextTaskId();
-        
-        // Total number of operations achieved
-        if (Integer.parseInt(taskIdString) >= numberOfOperations - 1)
-        	return;
-        
         long timestamp = System.currentTimeMillis();
         
         String dataString = RabbitMQUtils.readString(data);

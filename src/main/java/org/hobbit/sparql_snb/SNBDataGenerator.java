@@ -1,16 +1,16 @@
 package org.hobbit.sparql_snb;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.hobbit.core.components.AbstractDataGenerator;
 import org.hobbit.core.rabbit.RabbitMQUtils;
 import org.hobbit.sparql_snb.util.SNBConstants;
@@ -23,6 +23,7 @@ public class SNBDataGenerator extends AbstractDataGenerator {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SNBDataGenerator.class);
 	private Semaphore generateTasks = new Semaphore(0);
 	private int scaleFactor;
+	private int numberOfOperations;
 	
     public SNBDataGenerator() {
     	
@@ -48,6 +49,13 @@ public class SNBDataGenerator extends AbstractDataGenerator {
             System.exit(1);
         }
     	scaleFactor = Integer.parseInt(env.get(SNBConstants.GENERATOR_SCALE_FACTOR));
+    	    	
+    	// Number of operations
+    	if (!env.containsKey(SNBConstants.GENERATOR_NUMBER_OF_OPERATIONS)) {
+            LOGGER.error("Couldn't get \"" + SNBConstants.GENERATOR_NUMBER_OF_OPERATIONS + "\" from the properties. Aborting.");
+            System.exit(1);
+        }
+    	numberOfOperations = Integer.parseInt(env.get(SNBConstants.GENERATOR_NUMBER_OF_OPERATIONS));
 	}
 
 	@Override
@@ -108,29 +116,45 @@ public class SNBDataGenerator extends AbstractDataGenerator {
     @Override
     public void receiveCommand(byte command, byte[] data) {
         if (command == VirtuosoSystemAdapterConstants.BULK_LOADING_DATA_FINISHED) {
-        	String remoteFile = "http://hobbitdata.informatik.uni-leipzig.de/mighty-storage-challenge/Task2/sf1/tasks.txt";
-        	LOGGER.info("Downloading file " + remoteFile);
+        	String tasksFile = "http://hobbitdata.informatik.uni-leipzig.de/mighty-storage-challenge/Task2/sf1/tasks.txt";
+        	String answersFile = "http://hobbitdata.informatik.uni-leipzig.de/mighty-storage-challenge/Task2/sf1/answers.txt";
+        	LOGGER.info("Downloading tasks");
         	try {            
-        		InputStream inputStream = new URL(remoteFile).openStream();
+        		InputStream inputStream1 = new URL(tasksFile).openStream();
+        		BufferedReader inputStream2 = new BufferedReader(new InputStreamReader(new URL(answersFile).openStream()));
         		byte[] bytesArray = null;
 
-        		String msg = null;
-        		String fileContent = IOUtils.toString(inputStream);
+//        		String msg = null;
+        		String fileContent = IOUtils.toString(inputStream1);
         		String [] lines = fileContent.split("\n");
-        		int current1 = 0;
-        		int current2 = current1 + 1;
-        		while (current1 < lines.length) {
-        			while (current2 < lines.length && !lines[current2].startsWith("Ldbc"))
-        				current2++;
-        			msg = StringUtils.join(Arrays.copyOfRange(lines, current1, current2), "\n");
-        			bytesArray = RabbitMQUtils.writeString(msg);
+        		for (int i = 0; i < lines.length && i < numberOfOperations; i++) {
+        			StringBuilder builder = new StringBuilder();
+        			builder.append(lines[i]);
+        			if (!lines[i].startsWith("LdbcUpdate")) {
+        				String l = null;
+        				while(!(l = inputStream2.readLine()).equals("")) {
+        				    builder.append("\n" + l);
+        				}
+        			}
+        			bytesArray = RabbitMQUtils.writeString(builder.toString());
         			sendDataToTaskGenerator(bytesArray);
-        			current1 = current2;
-        			current2 = current1 + 1;
+        			LOGGER.info(builder.toString());
         		}
+//        		int current1 = 0;
+//        		int current2 = current1 + 1;
+//        		while (current1 < lines.length) {
+//        			while (current2 < lines.length && !lines[current2].startsWith("Ldbc"))
+//        				current2++;
+//        			msg = StringUtils.join(Arrays.copyOfRange(lines, current1, current2), "\n");
+//        			bytesArray = RabbitMQUtils.writeString(msg);
+//        			sendDataToTaskGenerator(bytesArray);
+//        			current1 = current2;
+//        			current2 = current1 + 1;
+//        		}
 
-        		LOGGER.info("File " + remoteFile + " has been downloaded successfully and sent.");
-        		inputStream.close();
+        		LOGGER.info("Files with tasks have been downloaded successfully and sent.");
+        		inputStream1.close();
+        		inputStream2.close();
         	} catch (IOException ex) {
         		System.out.println("Error: " + ex.getMessage());
         		ex.printStackTrace();

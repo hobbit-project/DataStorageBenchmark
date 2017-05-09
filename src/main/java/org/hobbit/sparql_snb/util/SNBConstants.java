@@ -42,5 +42,6 @@ public final class SNBConstants {
 	
 	public static final String EVALUATION_LOADING_TIME = "evaluation_loading_time";
 	public static final String EVALUATION_THROUGHPUT = "evaluation_throughput";
+	public static final String EVALUATION_NUMBER_OF_WRONG_ANSWERS = "evaluation_number_of_wrong_answers";
 	
 }

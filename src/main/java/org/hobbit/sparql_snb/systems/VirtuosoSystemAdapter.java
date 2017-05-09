@@ -118,6 +118,7 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
 			}
 		}
 		else {
+			LOGGER.info(queryString);
 			// Create a QueryExecution object from a query string ...
 			QueryExecution qe = queryExecFactory.createQueryExecution(queryString);
 			// and run it.
