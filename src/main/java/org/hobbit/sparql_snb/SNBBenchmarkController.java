@@ -157,7 +157,7 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 
 		LOGGER.info("Evaluation in progress...");
 		createEvaluationModule(EVALUATION_MODULE_CONTAINER_IMAGE, this.envVariablesEvaluationModule);
-		LOGGER.info("Waiting for the evaluation to finish...");
+
 		// wait for the evaluation to finish
 		waitForEvalComponentsToFinish();
 
