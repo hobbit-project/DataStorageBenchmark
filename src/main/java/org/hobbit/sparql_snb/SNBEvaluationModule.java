@@ -496,9 +496,7 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
     		LOGGER.info("Wrong answer on query:");
     		LOGGER.info(wrongAnswers.get(i));
     		LOGGER.info("Expected:" + "(" + wrongAnswers.get(i+1) + ")");
-    		LOGGER.info(wrongAnswers.get(i+1));
     		LOGGER.info("Actual:" + "(" + wrongAnswers.get(i+2) + ")");
-    		LOGGER.info(wrongAnswers.get(i+2));
 		}
     	
     	LOGGER.info(finalModel.toString());
