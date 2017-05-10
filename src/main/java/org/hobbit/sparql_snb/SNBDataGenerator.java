@@ -105,7 +105,6 @@ public class SNBDataGenerator extends AbstractDataGenerator {
     			
     			LOGGER.info("File " + remoteFile + " has been downloaded successfully and sent.");
     		}
-    		sendDataToTaskGenerator(RabbitMQUtils.writeString("LOADING STARTED"));
     		sendToCmdQueue(VirtuosoSystemAdapterConstants.BULK_LOAD_DATA_GEN_FINISHED);
     	} catch (IOException e) {
     		// TODO Auto-generated catch block

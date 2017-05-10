@@ -176,7 +176,6 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
     			File theDir = new File(datasetsFolderName);
     			FileUtils.deleteDirectory(theDir);
     			sendToCmdQueue(VirtuosoSystemAdapterConstants.BULK_LOADING_DATA_FINISHED);
-    			this.sendResultToEvalStorage("0", RabbitMQUtils.writeString("LOADING STARTED"));
     		} catch (IOException e) {
     			e.printStackTrace();
     		}

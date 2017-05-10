@@ -125,11 +125,10 @@ public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
         String taskIdString = getNextTaskId();
         long timestamp = System.currentTimeMillis();
         
+        if (taskIdString.endsWith("00"))
+        	LOGGER.info("Curentlly executing task " + taskIdString);
+        
         String dataString = RabbitMQUtils.readString(data);
-        if (dataString.equals("LOADING STARTED")) {
-        	sendTaskToEvalStorage(taskIdString, timestamp, data);
-        	return;
-        }
         String [] lines = dataString.split("\n");
         String queryText = prepareQueryText(lines[0]);
         data = RabbitMQUtils.writeString(queryText);

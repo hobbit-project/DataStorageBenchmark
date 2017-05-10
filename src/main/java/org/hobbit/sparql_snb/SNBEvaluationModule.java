@@ -17,6 +17,7 @@ import org.hobbit.core.Constants;
 import org.hobbit.core.components.AbstractEvaluationModule;
 import org.hobbit.core.rabbit.RabbitMQUtils;
 import org.hobbit.sparql_snb.util.SNBConstants;
+import org.hobbit.sparql_snb.util.VirtuosoSystemAdapterConstants;
 import org.hobbit.vocab.HOBBIT;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +64,6 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
 	
 	/* Property for loading time" */
 	private Property EVALUATION_LOADING_TIME = null;
-	long loading_time;
 	
 	/* Property for throughput" */
 	private Property EVALUATION_THROUGHPUT = null;
@@ -77,7 +77,9 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
     private Map<String, Long> totalTimePerQueryType = new HashMap<>();
     private Map<String, Integer> numberOfQueriesPerQueryType = new HashMap<>();
 
-	
+	private long loadingStarted;
+	private long loadingEnded;
+
     @Override
     public void init() throws Exception {
     	LOGGER.info("Initialization begins.");
@@ -306,10 +308,6 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
 		String eStr = RabbitMQUtils.readString(expectedData);
     	String rStr = RabbitMQUtils.readString(receivedData);
     	String [] lines = eStr.split("\n");
-    	if (eStr.equals("LOADING STARTED")) {
-    		loading_time = responseReceivedTimestamp - taskSentTimestamp;
-    		return;
-    	}
         //String taskId = lines[0];
         String type = lines[0].replaceAll("[{].*", "");
         String eAnswers = eStr.replaceFirst("[^\n]*\n", "");
@@ -360,7 +358,7 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
     		    		    		
     		LOGGER.info(entry.getKey() + "-" + ((double)totalMSPerQueryType)/ entry.getValue().size());
 		}
-		LOGGER.info("Loading time - " + loading_time);
+		LOGGER.info("Loading time - " + (loadingEnded - loadingStarted));
 		
 		Literal qeAverageTimeLiteral = finalModel.createTypedLiteral((double)totalMS / totalQueries, XSDDatatype.XSDdouble);
 		finalModel.add(experiment, EVALUATION_QE_AVERAGE_TIME, qeAverageTimeLiteral);
@@ -482,7 +480,7 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
 		if (numberOfQueriesPerQueryType.get("LdbcUpdate8AddFriendship") > 0)
 			finalModel.add(experiment, EVALUATION_U8E_AVERAGE_TIME, u8eAverageTimeLiteral);
 		
-		Literal loadingTimeLiteral = finalModel.createTypedLiteral(loading_time, XSDDatatype.XSDlong);
+		Literal loadingTimeLiteral = finalModel.createTypedLiteral(loadingEnded - loadingStarted, XSDDatatype.XSDlong);
 		finalModel.add(experiment, EVALUATION_LOADING_TIME, loadingTimeLiteral);
 		
 		Literal throughputLiteral = finalModel.createTypedLiteral((double)totalQueries * 1000 / totalMS, XSDDatatype.XSDdouble);
@@ -510,6 +508,17 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
 		
         // Always close the super class after yours!
         super.close();
+    }
+    
+    @Override
+    public void receiveCommand(byte command, byte[] data) {
+    	if (VirtuosoSystemAdapterConstants.BULK_LOAD_DATA_GEN_FINISHED == command) {
+    		loadingStarted = System.currentTimeMillis();
+    	}
+    	else if (command == VirtuosoSystemAdapterConstants.BULK_LOADING_DATA_FINISHED) {
+    		loadingEnded = System.currentTimeMillis();
+    	}
+    	super.receiveCommand(command, data);	
     }
 
 }
