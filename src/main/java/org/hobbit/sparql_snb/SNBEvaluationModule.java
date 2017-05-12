@@ -17,7 +17,6 @@ import org.hobbit.core.Constants;
 import org.hobbit.core.components.AbstractEvaluationModule;
 import org.hobbit.core.rabbit.RabbitMQUtils;
 import org.hobbit.sparql_snb.util.SNBConstants;
-import org.hobbit.sparql_snb.util.VirtuosoSystemAdapterConstants;
 import org.hobbit.vocab.HOBBIT;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,9 +75,8 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
     
     private Map<String, Long> totalTimePerQueryType = new HashMap<>();
     private Map<String, Integer> numberOfQueriesPerQueryType = new HashMap<>();
-
-	private long loadingStarted;
-	private long loadingEnded;
+    
+    private long loading_time;
 
     @Override
     public void init() throws Exception {
@@ -288,6 +286,10 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
             throw new IllegalArgumentException("Couldn't get \"" + SNBConstants.EVALUATION_LOADING_TIME + "\" from the environment. Aborting.");
         }
         EVALUATION_LOADING_TIME = finalModel.createProperty(env.get(SNBConstants.EVALUATION_LOADING_TIME));
+        if (!env.containsKey(SNBConstants.EVALUATION_REAL_LOADING_TIME)) {
+            throw new IllegalArgumentException("Couldn't get \"" + SNBConstants.EVALUATION_REAL_LOADING_TIME + "\" from the environment. Aborting.");
+        }
+        loading_time = Long.parseLong(env.get(SNBConstants.EVALUATION_REAL_LOADING_TIME));
         
         /* throughput */
         if (!env.containsKey(SNBConstants.EVALUATION_THROUGHPUT)) {
@@ -330,12 +332,12 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
 		// write them into a Jena model and send it to the benchmark controller.
 		LOGGER.info("Summarize evaluation...");
 		//TODO: remove this sleeping
-		try {
-			TimeUnit.SECONDS.sleep(30);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		try {
+//			TimeUnit.SECONDS.sleep(30);
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		
         if (experimentUri == null)
             experimentUri = System.getenv().get(Constants.HOBBIT_EXPERIMENT_URI_KEY);
@@ -358,7 +360,7 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
     		    		    		
     		LOGGER.info(entry.getKey() + "-" + ((double)totalMSPerQueryType)/ entry.getValue().size());
 		}
-		LOGGER.info("Loading time - " + (loadingEnded - loadingStarted));
+		LOGGER.info("Loading time - " + loading_time);
 		
 		Literal qeAverageTimeLiteral = finalModel.createTypedLiteral((double)totalMS / totalQueries, XSDDatatype.XSDdouble);
 		finalModel.add(experiment, EVALUATION_QE_AVERAGE_TIME, qeAverageTimeLiteral);
@@ -480,7 +482,7 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
 		if (numberOfQueriesPerQueryType.get("LdbcUpdate8AddFriendship") > 0)
 			finalModel.add(experiment, EVALUATION_U8E_AVERAGE_TIME, u8eAverageTimeLiteral);
 		
-		Literal loadingTimeLiteral = finalModel.createTypedLiteral(loadingEnded - loadingStarted, XSDDatatype.XSDlong);
+		Literal loadingTimeLiteral = finalModel.createTypedLiteral(loading_time, XSDDatatype.XSDlong);
 		finalModel.add(experiment, EVALUATION_LOADING_TIME, loadingTimeLiteral);
 		
 		Literal throughputLiteral = finalModel.createTypedLiteral((double)totalQueries * 1000 / totalMS, XSDDatatype.XSDdouble);
@@ -508,17 +510,6 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
 		
         // Always close the super class after yours!
         super.close();
-    }
-    
-    @Override
-    public void receiveCommand(byte command, byte[] data) {
-    	if (VirtuosoSystemAdapterConstants.BULK_LOAD_DATA_GEN_FINISHED == command) {
-    		loadingStarted = System.currentTimeMillis();
-    	}
-    	else if (command == VirtuosoSystemAdapterConstants.BULK_LOADING_DATA_FINISHED) {
-    		loadingEnded = System.currentTimeMillis();
-    	}
-    	super.receiveCommand(command, data);	
     }
 
 }

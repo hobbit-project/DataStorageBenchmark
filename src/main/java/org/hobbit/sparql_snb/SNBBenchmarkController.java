@@ -1,20 +1,25 @@
 package org.hobbit.sparql_snb;
 
+import java.util.ArrayList;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.jena.rdf.model.NodeIterator;
 import org.hobbit.core.Commands;
 import org.hobbit.core.Constants;
 import org.hobbit.core.components.AbstractBenchmarkController;
 import org.hobbit.sparql_snb.util.SNBConstants;
+import org.hobbit.sparql_snb.util.VirtuosoSystemAdapterConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SNBBenchmarkController extends AbstractBenchmarkController {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SNBBenchmarkController.class);
-	private String[] envVariablesEvaluationModule = null;
+	private ArrayList<String> envVariablesEvaluationModule = new ArrayList<String>();;
 	private int numberOfOperations = -1;
 	private int scaleFactor = -1;
+	private long loadingStarted;
+	private long loadingEnded;
 
 	// TODO: Add image names of containers
 	/* Data generator Docker image */
@@ -97,41 +102,39 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 		envVariables = ArrayUtils.add(envVariables, "ACKNOWLEDGEMENT_FLAG=true");
 		createEvaluationStorage(DEFAULT_EVAL_STORAGE_IMAGE, envVariables);
 		// TODO: get KPIs for evaluation module
-		this.envVariablesEvaluationModule = new String[] {
-				SNBConstants.EVALUATION_QE_AVERAGE_TIME + "=" + "http://w3id.org/bench#QEAverageTime",
-				SNBConstants.EVALUATION_Q01E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q01EAverageTime",
-				SNBConstants.EVALUATION_Q02E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q02EAverageTime",
-				SNBConstants.EVALUATION_Q03E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q03EAverageTime",
-				SNBConstants.EVALUATION_Q04E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q04EAverageTime",
-				SNBConstants.EVALUATION_Q05E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q05EAverageTime",
-				SNBConstants.EVALUATION_Q06E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q06EAverageTime",
-				SNBConstants.EVALUATION_Q07E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q07EAverageTime",
-				SNBConstants.EVALUATION_Q08E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q08EAverageTime",
-				SNBConstants.EVALUATION_Q09E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q09EAverageTime",
-				SNBConstants.EVALUATION_Q10E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q10EAverageTime",
-				SNBConstants.EVALUATION_Q11E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q11EAverageTime",
-				SNBConstants.EVALUATION_Q12E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q12EAverageTime",
-				SNBConstants.EVALUATION_Q13E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q13EAverageTime",
-				SNBConstants.EVALUATION_Q14E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q14EAverageTime",
-				SNBConstants.EVALUATION_S1E_AVERAGE_TIME + "=" + "http://w3id.org/bench#S1EAverageTime",
-				SNBConstants.EVALUATION_S2E_AVERAGE_TIME + "=" + "http://w3id.org/bench#S2EAverageTime",
-				SNBConstants.EVALUATION_S3E_AVERAGE_TIME + "=" + "http://w3id.org/bench#S3EAverageTime",
-				SNBConstants.EVALUATION_S4E_AVERAGE_TIME + "=" + "http://w3id.org/bench#S4EAverageTime",
-				SNBConstants.EVALUATION_S5E_AVERAGE_TIME + "=" + "http://w3id.org/bench#S5EAverageTime",
-				SNBConstants.EVALUATION_S6E_AVERAGE_TIME + "=" + "http://w3id.org/bench#S6EAverageTime",
-				SNBConstants.EVALUATION_S7E_AVERAGE_TIME + "=" + "http://w3id.org/bench#S7EAverageTime",
-				SNBConstants.EVALUATION_U1E_AVERAGE_TIME + "=" + "http://w3id.org/bench#U1EAverageTime",
-				SNBConstants.EVALUATION_U2E_AVERAGE_TIME + "=" + "http://w3id.org/bench#U2EAverageTime",
-				SNBConstants.EVALUATION_U3E_AVERAGE_TIME + "=" + "http://w3id.org/bench#U3EAverageTime",
-				SNBConstants.EVALUATION_U4E_AVERAGE_TIME + "=" + "http://w3id.org/bench#U4EAverageTime",
-				SNBConstants.EVALUATION_U5E_AVERAGE_TIME + "=" + "http://w3id.org/bench#U5EAverageTime",
-				SNBConstants.EVALUATION_U6E_AVERAGE_TIME + "=" + "http://w3id.org/bench#U6EAverageTime",
-				SNBConstants.EVALUATION_U7E_AVERAGE_TIME + "=" + "http://w3id.org/bench#U7EAverageTime",
-				SNBConstants.EVALUATION_U8E_AVERAGE_TIME + "=" + "http://w3id.org/bench#U8EAverageTime",
-				SNBConstants.EVALUATION_LOADING_TIME + "=" + "http://w3id.org/bench#loadingTime",
-				SNBConstants.EVALUATION_THROUGHPUT + "=" + "http://w3id.org/bench#throughput",
-				SNBConstants.EVALUATION_NUMBER_OF_WRONG_ANSWERS + "=" + "http://w3id.org/bench#numberOfWrongAnswers"
-		};
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_QE_AVERAGE_TIME + "=" + "http://w3id.org/bench#QEAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_Q01E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q01EAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_Q02E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q02EAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_Q03E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q03EAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_Q04E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q04EAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_Q05E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q05EAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_Q06E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q06EAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_Q07E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q07EAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_Q08E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q08EAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_Q09E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q09EAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_Q10E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q10EAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_Q11E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q11EAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_Q12E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q12EAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_Q13E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q13EAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_Q14E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q14EAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_S1E_AVERAGE_TIME + "=" + "http://w3id.org/bench#S1EAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_S2E_AVERAGE_TIME + "=" + "http://w3id.org/bench#S2EAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_S3E_AVERAGE_TIME + "=" + "http://w3id.org/bench#S3EAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_S4E_AVERAGE_TIME + "=" + "http://w3id.org/bench#S4EAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_S5E_AVERAGE_TIME + "=" + "http://w3id.org/bench#S5EAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_S6E_AVERAGE_TIME + "=" + "http://w3id.org/bench#S6EAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_S7E_AVERAGE_TIME + "=" + "http://w3id.org/bench#S7EAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_U1E_AVERAGE_TIME + "=" + "http://w3id.org/bench#U1EAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_U2E_AVERAGE_TIME + "=" + "http://w3id.org/bench#U2EAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_U3E_AVERAGE_TIME + "=" + "http://w3id.org/bench#U3EAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_U4E_AVERAGE_TIME + "=" + "http://w3id.org/bench#U4EAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_U5E_AVERAGE_TIME + "=" + "http://w3id.org/bench#U5EAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_U6E_AVERAGE_TIME + "=" + "http://w3id.org/bench#U6EAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_U7E_AVERAGE_TIME + "=" + "http://w3id.org/bench#U7EAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_U8E_AVERAGE_TIME + "=" + "http://w3id.org/bench#U8EAverageTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_LOADING_TIME + "=" + "http://w3id.org/bench#loadingTime");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_THROUGHPUT + "=" + "http://w3id.org/bench#throughput");
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_NUMBER_OF_WRONG_ANSWERS + "=" + "http://w3id.org/bench#numberOfWrongAnswers");
 
 		// Wait for all components to finish their initialization
 		waitForComponentsToInitialize();
@@ -156,7 +159,8 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 		waitForSystemToFinish();
 
 		LOGGER.info("Evaluation in progress...");
-		createEvaluationModule(EVALUATION_MODULE_CONTAINER_IMAGE, this.envVariablesEvaluationModule);
+		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_REAL_LOADING_TIME + "=" + (loadingEnded - loadingStarted));
+		createEvaluationModule(EVALUATION_MODULE_CONTAINER_IMAGE, envVariablesEvaluationModule.toArray(new String[0]));
 
 		// wait for the evaluation to finish
 		waitForEvalComponentsToFinish();
@@ -166,5 +170,16 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 		LOGGER.info("Executing benchmark is over.");
 
 	}
+	
+    @Override
+    public void receiveCommand(byte command, byte[] data) {
+    	if (VirtuosoSystemAdapterConstants.BULK_LOAD_DATA_GEN_FINISHED == command) {
+    		loadingStarted = System.currentTimeMillis();
+    	}
+    	else if (command == VirtuosoSystemAdapterConstants.BULK_LOADING_DATA_FINISHED) {
+    		loadingEnded = System.currentTimeMillis();
+    	}
+    	super.receiveCommand(command, data);	
+    }
 
 }
