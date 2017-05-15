@@ -6,7 +6,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import org.aksw.jena_sparql_api.core.QueryExecutionFactory;
 import org.aksw.jena_sparql_api.core.UpdateExecutionFactory;
 import org.aksw.jena_sparql_api.core.UpdateExecutionFactoryHttp;
@@ -45,19 +44,13 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
 
 	@Override
 	public void receiveGeneratedData(byte[] data) {
-    	byte [] data1 = Arrays.copyOf(data, 4);	
-    	int fileNameLength = ByteBuffer.wrap(data1).getInt();
-    	
-    	data1 = Arrays.copyOfRange(data, 4, 4 + fileNameLength);
-    	String fileName = RabbitMQUtils.readString(data1);
-    	
-    	data1 = Arrays.copyOfRange(data, 4 + fileNameLength, 8 + fileNameLength);
-    	int fileContentLength = ByteBuffer.wrap(data1).getInt();
-    	
+		ByteBuffer dataBuffer = ByteBuffer.wrap(data);    	
+    	String fileName = RabbitMQUtils.readString(dataBuffer);
+    	    	
     	FileOutputStream fos;
 		try {
 			fos = new FileOutputStream(System.getProperty("user.dir") + File.separator + "datasets" + File.separator + fileName);
-	    	fos.write(Arrays.copyOfRange(data, 8 + fileNameLength, 8 + fileNameLength + fileContentLength));
+	    	fos.write(RabbitMQUtils.readByteArray(dataBuffer));
 	    	fos.close();
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block

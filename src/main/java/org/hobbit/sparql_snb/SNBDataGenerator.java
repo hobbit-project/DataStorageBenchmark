@@ -1,12 +1,10 @@
 package org.hobbit.sparql_snb;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
 
@@ -90,17 +88,12 @@ public class SNBDataGenerator extends AbstractDataGenerator {
     			remoteFile = directory + remoteFile;
     			LOGGER.info("Downloading file " + remoteFile);           
     			InputStream inputStream = new URL(remoteFile).openStream();
-    			byte[] bytesArray = null;
 
-    			byte [] fileContent = IOUtils.toByteArray(inputStream);
-    			String remoteFileName = remoteFile.replaceFirst(".*/", "");
-    			ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
-    			outputStream.write(ByteBuffer.allocate(4).putInt(remoteFileName.length()).array());
-    			outputStream.write(RabbitMQUtils.writeString(remoteFileName));
-    			outputStream.write(ByteBuffer.allocate(4).putInt(fileContent.length).array());
-    			outputStream.write(fileContent);
-    			bytesArray = outputStream.toByteArray();
-    			sendDataToSystemAdapter(bytesArray);           	
+    			byte[][] generatedFileArray = new byte[2][];
+        		generatedFileArray[0] = RabbitMQUtils.writeString(remoteFile.replaceFirst(".*/", ""));
+        		generatedFileArray[1] = IOUtils.toByteArray(inputStream);;
+        		byte[] generatedFile = RabbitMQUtils.writeByteArrays(generatedFileArray);
+        		sendDataToSystemAdapter(generatedFile);
     			inputStream.close();
     			
     			LOGGER.info("File " + remoteFile + " has been downloaded successfully and sent.");
