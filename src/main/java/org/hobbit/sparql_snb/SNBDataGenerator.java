@@ -98,7 +98,7 @@ public class SNBDataGenerator extends AbstractDataGenerator {
     			
     			LOGGER.info("File " + remoteFile + " has been downloaded successfully and sent.");
     		}
-    		sendToCmdQueue(VirtuosoSystemAdapterConstants.BULK_LOAD_DATA_GEN_FINISHED);
+    		sendToCmdQueue(VirtuosoSystemAdapterConstants.BULK_LOAD_DATA_GEN_FINISHED_FROM_DATAGEN);
     	} catch (IOException e) {
     		// TODO Auto-generated catch block
     		e.printStackTrace();

@@ -1,5 +1,6 @@
 package org.hobbit.sparql_snb;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -173,8 +174,13 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 	
     @Override
     public void receiveCommand(byte command, byte[] data) {
-    	if (VirtuosoSystemAdapterConstants.BULK_LOAD_DATA_GEN_FINISHED == command) {
+    	if (VirtuosoSystemAdapterConstants.BULK_LOAD_DATA_GEN_FINISHED_FROM_DATAGEN == command) {
     		loadingStarted = System.currentTimeMillis();
+    		try {
+				sendToCmdQueue(VirtuosoSystemAdapterConstants.BULK_LOAD_DATA_GEN_FINISHED);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
     	}
     	else if (command == VirtuosoSystemAdapterConstants.BULK_LOADING_DATA_FINISHED) {
     		loadingEnded = System.currentTimeMillis();
