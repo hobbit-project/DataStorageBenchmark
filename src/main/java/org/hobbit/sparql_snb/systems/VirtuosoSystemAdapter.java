@@ -30,16 +30,9 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
     private String virtuosoContName = "localhost";
     private QueryExecutionFactory queryExecFactory;
     private UpdateExecutionFactory updateExecFactory;
-
-    private int dataTerminationCount = 0;
-    private int numberOfDataGenerators;
-    
-	public VirtuosoSystemAdapter(int numberOfDataGenerators) {
-        this.numberOfDataGenerators = numberOfDataGenerators;
-	}
-	
+    	
 	public VirtuosoSystemAdapter() {
-        this.numberOfDataGenerators = 1;
+		
 	}
 
 	@Override
@@ -208,16 +201,5 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
     	}
     	super.close();
     	LOGGER.info("Virtuoso has stopped.");
-    }
-	
-    protected synchronized void dataGeneratorTerminated() {
-        ++dataTerminationCount;
-        if (dataTerminationCount == numberOfDataGenerators - 1) {
-            try {
-                sendToCmdQueue(VirtuosoSystemAdapterConstants.BULK_LOAD_DATA_GEN_FINISHED);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }        	
-        }
     }
 }
