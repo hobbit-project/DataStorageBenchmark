@@ -131,8 +131,8 @@ public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
         String dataString = RabbitMQUtils.readString(data);
         String [] lines = dataString.split("\n");
         String queryText = prepareQueryText(lines[0]);
-        data = RabbitMQUtils.writeString(queryText);
-        sendTaskToSystemAdapter(taskIdString, data);
+        byte[] task = RabbitMQUtils.writeByteArrays(new byte[][] { RabbitMQUtils.writeString(queryText) });
+        sendTaskToSystemAdapter(taskIdString, task);
 
         data = RabbitMQUtils.writeString(dataString);
         sendTaskToEvalStorage(taskIdString, timestamp, data);

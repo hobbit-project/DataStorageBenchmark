@@ -57,22 +57,24 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 			String fileName = RabbitMQUtils.readString(dataBuffer);
 			LOGGER.info("Receiving graph URI " + fileName);
 			graphUris.add(fileName);
+			byte [] content = RabbitMQUtils.readByteArray(dataBuffer);
 
-			FileOutputStream fos;
-			try {
-				fos = new FileOutputStream(System.getProperty("user.dir") + File.separator + "datasets" + File.separator + fileName);
-				fos.write(RabbitMQUtils.readByteArray(dataBuffer));
-				fos.close();
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			if (content.length != 0) {
+				FileOutputStream fos;
+				try {
+					fos = new FileOutputStream(System.getProperty("user.dir") + File.separator + "datasets" + File.separator + fileName);
+					fos.write(content);
+					fos.close();
+				} catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
-		else {
-            LOGGER.info("INSERT SPARQL query received.");
+		else {			
             this.insertsReceived++;
             ByteBuffer buffer = ByteBuffer.wrap(arg0);
             // read the graph uri, do nothing
@@ -92,16 +94,14 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
                 e.printStackTrace();
             }
 
-            LOGGER.info("INSERT SPARQL query has been processed.");
             this.insertsProcessed ++;
 		}
 	}
 
 	@Override
 	public void receiveGeneratedTask(String taskId, byte[] data) {
-		this.selectsReceived++;
-		
-		String queryString = RabbitMQUtils.readString(data);
+		ByteBuffer buffer = ByteBuffer.wrap(data);
+		String queryString = RabbitMQUtils.readString(buffer);
 		
 		if (queryString.contains("INSERT DATA")) {
 			
@@ -126,6 +126,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 			}
 		}
 		else {
+			this.selectsReceived++;
 			// Create a QueryExecution object from a query string ...
 			QueryExecution qe = queryExecFactory.createQueryExecution(queryString);
 			// and run it.
@@ -144,8 +145,8 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 			} finally {
 				qe.close();
 			}
+			this.selectsProcessed++;
 		}
-		this.selectsProcessed++;
 	}
 	
     @Override
@@ -162,7 +163,13 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 		theDir.mkdir();
     	
     	queryExecFactory = new QueryExecutionFactoryHttp("http://" + virtuosoContName + ":8890/sparql");
+		//This is needed for ODIN bench
+        queryExecFactory = new QueryExecutionFactoryPaginated(queryExecFactory, 100);
     	
+        // create update factory
+        HttpAuthenticator auth = new SimpleAuthenticator("dba", "dba".toCharArray());
+        updateExecFactory = new UpdateExecutionFactoryHttp("http://" + virtuosoContName + ":8890/sparql-auth", auth);
+
     }
     
     @Override
@@ -170,11 +177,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
     	//LOGGER.info("received command {}", Commands.toString(command));
     	if (VirtuosoSystemAdapterConstants.BULK_LOAD_DATA_GEN_FINISHED == command) {
     		LOGGER.info("Bulk phase begins");
-    		
-            // create update factory
-            HttpAuthenticator auth = new SimpleAuthenticator("dba", "dba".toCharArray());
-            updateExecFactory = new UpdateExecutionFactoryHttp("http://" + virtuosoContName + ":8890/sparql-auth", auth);
-
+    		    		
             for (String uri : this.graphUris) {
                 String create = "CREATE GRAPH " + "<" + uri + ">";
                 UpdateRequest updateRequest = UpdateRequestUtils.parse(create);
@@ -183,7 +186,6 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
             }
 
             phase2 = false;
-            
     		loadDataset();
     		
     		try {
@@ -224,10 +226,10 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
     @Override
     public void close() throws IOException {
         if (this.insertsProcessed != this.insertsReceived) {
-            LOGGER.error("INSERT queries received and processed are not equal");
+            LOGGER.error("INSERT queries received and processed are not equal (" + this.insertsReceived + " - " + this.insertsProcessed + ")");
         }
         if (this.selectsProcessed != this.selectsReceived) {
-            LOGGER.error("SELECT queries received and processed are not equal");
+            LOGGER.error("SELECT queries received and processed are not equal (" + this.selectsReceived + " - " + this.selectsProcessed + ")");
         }
     	try {
     		queryExecFactory.close();
