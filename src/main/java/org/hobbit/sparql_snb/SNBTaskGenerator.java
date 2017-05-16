@@ -142,17 +142,16 @@ public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
     	String [] parts = text.split("[{]", 2);
     	String queryType = parts[0];
     	String [] arguments = parts[1].substring(0, parts[1].length()-1).split(", ");
-    	String queryString = null;
+    	String queryString = preparePrefixes();;
     	if (queryType.startsWith("LdbcUpdate")) {
-    		queryString = preparePrefixes();
     		queryString += "INSERT DATA { GRAPH <https://github.com/hobbit-project/sparql-snb> {\n" + prepareTriplets(queryType, parts[1].substring(0, parts[1].length()-1)) + "\n}\n}\n";
     	}
     	else {
     		if (queryType.startsWith("LdbcQuery")) {
-    			queryString = file2string(new File("snb_queries", "query" + queryType.replaceAll("[^0-9]*", "") + ".txt"));
+    			queryString += file2string(new File("snb_queries", "query" + queryType.replaceAll("[^0-9]*", "") + ".txt"));
     		}
     		else {
-    			queryString = file2string(new File("snb_queries", "s" + queryType.replaceAll("[^0-9]*", "") + ".txt"));
+    			queryString += file2string(new File("snb_queries", "s" + queryType.replaceAll("[^0-9]*", "") + ".txt"));
     		}
     		for (String arg : arguments) {
     			String [] tmp = arg.split("=");
@@ -193,7 +192,13 @@ public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
 	}
     
 	private String preparePrefixes() {
-		return "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n";
+		return  "PREFIX xsd:         <http://www.w3.org/2001/XMLSchema#>\n" +
+				"PREFIX snvoc:       <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/>\n" +
+				"PREFIX sn:          <http://www.ldbc.eu/ldbc_socialnet/1.0/data/>\n" +
+				"PREFIX dbpedia-owl: <http://dbpedia.org/ontology/>\n" +
+				"PREFIX dbpedia:     <http://dbpedia.org/resource/>\n" +
+				"PREFIX foaf:        <http://xmlns.com/foaf/0.1/>\n" +
+				"PREFIX rdfs:        <http://www.w3.org/2000/01/rdf-schema#>\n";
 	}
 
 	private String prepareTriplets(String queryType, String arguments) throws UnsupportedEncodingException, ParseException {

@@ -80,12 +80,12 @@ public class SNBDataGenerator extends AbstractDataGenerator {
     	try { 
 			InputStream is = new URL(datasetFiles).openStream();
 			String [] files = IOUtils.toString(is).split("\n");
-			//TODO: remove the following:
-			//files = new String[0];
 			is.close();
 			
     		for (String remoteFile : files) {
-    			remoteFile = directory + remoteFile;
+    			//TODO: Change this (instead of poincare -> directory)
+    			remoteFile = "http://poincare.matf.bg.ac.rs/~mirko/" + remoteFile;
+    			//remoteFile = directory + remoteFile;
     			LOGGER.info("Downloading file " + remoteFile);           
     			InputStream inputStream = new URL(remoteFile).openStream();
 
