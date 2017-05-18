@@ -4,7 +4,7 @@ PORT=1111
 
 sleep 1
 
-echo "ld_dir('"$2"', '*.ttl.gz', 'https://github.com/hobbit-project/sparql-snb');" | isql-v $ADDRESS:$PORT
+echo "ld_dir('"$2"', '*', 'https://github.com/hobbit-project/sparql-snb');" | isql-v $ADDRESS:$PORT
 for i in `seq 1 $3`;
 do
     isql-v $ADDRESS:$PORT exec="rdf_loader_run()" &

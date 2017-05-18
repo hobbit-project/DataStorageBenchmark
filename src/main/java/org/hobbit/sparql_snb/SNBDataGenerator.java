@@ -89,11 +89,10 @@ public class SNBDataGenerator extends AbstractDataGenerator {
     			LOGGER.info("Downloading file " + remoteFile);           
     			InputStream inputStream = new URL(remoteFile).openStream();
 
-    			byte[][] generatedFileArray = new byte[2][];
-        		generatedFileArray[0] = RabbitMQUtils.writeString(remoteFile.replaceFirst(".*/", ""));
-        		generatedFileArray[1] = IOUtils.toByteArray(inputStream);;
-        		byte[] generatedFile = RabbitMQUtils.writeByteArrays(generatedFileArray);
-        		sendDataToSystemAdapter(generatedFile);
+        		String graphUri = remoteFile.replaceFirst(".*/", "");
+        		byte[] data = IOUtils.toByteArray(inputStream);;
+        		byte[] dataForSending = RabbitMQUtils.writeByteArrays(null, new byte[][]{RabbitMQUtils.writeString(graphUri)}, data);
+        		sendDataToSystemAdapter(dataForSending);
     			inputStream.close();
     			
     			LOGGER.info("File " + remoteFile + " has been downloaded successfully and sent.");

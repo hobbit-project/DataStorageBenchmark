@@ -6,8 +6,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.concurrent.TimeUnit;
 
 import org.aksw.jena_sparql_api.core.QueryExecutionFactory;
 import org.aksw.jena_sparql_api.core.UpdateExecutionFactory;
@@ -36,11 +37,13 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
     private UpdateExecutionFactory updateExecFactory;
     
     private boolean phase2 = true;
-    List<String> graphUris = new ArrayList<String>();
+    SortedSet<String> graphUris = new TreeSet<String>(); 
     private int insertsReceived = 0;
 	private int insertsProcessed = 0;
     private int selectsReceived = 0;
     private int selectsProcessed = 0;
+    
+    private int counter = 0;
     
 	public VirtuosoSysAda(int numberOfMessagesInParallel) {
 		super(numberOfMessagesInParallel);
@@ -52,16 +55,21 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 
 	@Override
 	public void receiveGeneratedData(byte[] arg0) {
+		LOGGER.info("receiveGeneratedData");
 		if (phase2 == true) {
 			ByteBuffer dataBuffer = ByteBuffer.wrap(arg0);    	
 			String fileName = RabbitMQUtils.readString(dataBuffer);
 			LOGGER.info("Receiving graph URI " + fileName);
 			graphUris.add(fileName);
-			byte [] content = RabbitMQUtils.readByteArray(dataBuffer);
+			byte [] content = new byte[dataBuffer.remaining()];
+			dataBuffer.get(content, 0, dataBuffer.remaining());
+			//byte [] content = RabbitMQUtils.readByteArray(dataBuffer);
 
 			if (content.length != 0) {
 				FileOutputStream fos;
 				try {
+					if (fileName.contains("/"))
+						fileName = "file" + String.format("%010d", counter++);
 					fos = new FileOutputStream(System.getProperty("user.dir") + File.separator + "datasets" + File.separator + fileName);
 					fos.write(content);
 					fos.close();
@@ -78,11 +86,11 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
             this.insertsReceived++;
             ByteBuffer buffer = ByteBuffer.wrap(arg0);
             // read the graph uri, do nothing
-            String graphUri = RabbitMQUtils.readString(buffer);
-            if (!graphUris.contains(graphUri)) {
-                LOGGER.error(graphUri + " is not included in the default/named graphs of Virtuoso");
-                throw new RuntimeException();
-            }
+//            String graphUri = RabbitMQUtils.readString(buffer);
+//            if (!graphUris.contains(graphUri)) {
+//                LOGGER.error(graphUri + " is not included in the default/named graphs of Virtuoso");
+//                throw new RuntimeException();
+//            }
             // read the insert query
             String insertQuery = RabbitMQUtils.readString(buffer);
             // insert query
@@ -100,6 +108,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 
 	@Override
 	public void receiveGeneratedTask(String taskId, byte[] data) {
+		LOGGER.info("receiveGeneratedTask");
 		ByteBuffer buffer = ByteBuffer.wrap(data);
 		String queryString = RabbitMQUtils.readString(buffer);
 		
@@ -176,13 +185,21 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
     public void receiveCommand(byte command, byte[] data) {
     	//LOGGER.info("received command {}", Commands.toString(command));
     	if (VirtuosoSystemAdapterConstants.BULK_LOAD_DATA_GEN_FINISHED == command) {
+    		try {
+    			TimeUnit.SECONDS.sleep(10);
+    		} catch (InterruptedException e) {
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
+    		}
+    		
     		LOGGER.info("Bulk phase begins");
-    		    		
+    		
+    		LOGGER.info(Integer.toString(this.graphUris.size()));
             for (String uri : this.graphUris) {
+            	LOGGER.info(uri);
                 String create = "CREATE GRAPH " + "<" + uri + ">";
                 UpdateRequest updateRequest = UpdateRequestUtils.parse(create);
                 updateExecFactory.createUpdateProcessor(updateRequest).execute();
-
             }
 
             phase2 = false;
