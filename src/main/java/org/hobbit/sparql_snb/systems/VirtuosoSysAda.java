@@ -55,7 +55,6 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 
 	@Override
 	public void receiveGeneratedData(byte[] arg0) {
-		LOGGER.info("receiveGeneratedData");
 		if (phase2 == true) {
 			ByteBuffer dataBuffer = ByteBuffer.wrap(arg0);    	
 			String fileName = RabbitMQUtils.readString(dataBuffer);
@@ -85,12 +84,6 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 		else {			
             this.insertsReceived++;
             ByteBuffer buffer = ByteBuffer.wrap(arg0);
-            // read the graph uri, do nothing
-//            String graphUri = RabbitMQUtils.readString(buffer);
-//            if (!graphUris.contains(graphUri)) {
-//                LOGGER.error(graphUri + " is not included in the default/named graphs of Virtuoso");
-//                throw new RuntimeException();
-//            }
             // read the insert query
             String insertQuery = RabbitMQUtils.readString(buffer);
             // insert query
@@ -108,7 +101,6 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 
 	@Override
 	public void receiveGeneratedTask(String taskId, byte[] data) {
-		LOGGER.info("receiveGeneratedTask");
 		ByteBuffer buffer = ByteBuffer.wrap(data);
 		String queryString = RabbitMQUtils.readString(buffer);
 		
@@ -194,9 +186,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
     		
     		LOGGER.info("Bulk phase begins");
     		
-    		LOGGER.info(Integer.toString(this.graphUris.size()));
             for (String uri : this.graphUris) {
-            	LOGGER.info(uri);
                 String create = "CREATE GRAPH " + "<" + uri + ">";
                 UpdateRequest updateRequest = UpdateRequestUtils.parse(create);
                 updateExecFactory.createUpdateProcessor(updateRequest).execute();
