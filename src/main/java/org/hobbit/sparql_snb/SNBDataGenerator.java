@@ -84,8 +84,8 @@ public class SNBDataGenerator extends AbstractDataGenerator {
 			
     		for (String remoteFile : files) {
     			//TODO: Change this (instead of poincare -> directory)
-    			remoteFile = "http://poincare.matf.bg.ac.rs/~mirko/" + remoteFile;
-    			//remoteFile = directory + remoteFile;
+    			//remoteFile = "http://poincare.matf.bg.ac.rs/~mirko/" + remoteFile;
+    			remoteFile = directory + remoteFile;
     			LOGGER.info("Downloading file " + remoteFile);           
     			InputStream inputStream = new URL(remoteFile).openStream();
 

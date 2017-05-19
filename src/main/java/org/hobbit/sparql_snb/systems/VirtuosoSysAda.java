@@ -126,6 +126,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 			}
 		}
 		else {
+			long timestamp1 = System.currentTimeMillis();
 			this.selectsReceived++;
 			// Create a QueryExecution object from a query string ...
 			QueryExecution qe = queryExecFactory.createQueryExecution(queryString);
@@ -136,6 +137,8 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 				ResultSetFormatter.outputAsJSON(outputStream, results);
 				try {
 					this.sendResultToEvalStorage(taskId, outputStream.toByteArray());
+					long timestamp2 = System.currentTimeMillis();
+//					LOGGER.info("TIME: " + (timestamp2-timestamp1));
 				} catch (IOException e) {
 					LOGGER.error("Got an exception while sending results.", e);
 				}
