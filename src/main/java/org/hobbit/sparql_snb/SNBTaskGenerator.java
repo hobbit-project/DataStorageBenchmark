@@ -125,7 +125,7 @@ public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
         String taskIdString = getNextTaskId();
         long timestamp = System.currentTimeMillis();
         
-        if (taskIdString.endsWith("00"))
+//        if (taskIdString.endsWith("00"))
         	LOGGER.info("Curentlly executing task " + taskIdString);
         
         String dataString = RabbitMQUtils.readString(data);
@@ -179,6 +179,7 @@ public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
     				break;
     			case "countryXName":
     			case "countryYName":
+    			case "tagClassName":
     				queryString = queryString.replaceAll("%" + tmp[0] + "%", tmp[1].substring(1, tmp[1].length()-1));
     				break;
     			default:

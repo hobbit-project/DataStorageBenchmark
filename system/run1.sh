@@ -1,7 +1,9 @@
 #!/bin/sh
 
+#sudo ln -s isql-v isql
+
 rm virtuoso_run.log 2> /dev/null
-cp virtuoso.ini.template virtuoso.ini
+cp virtuoso_vos.ini.template virtuoso.ini
 
 echo $(date +%H:%M:%S.%N | cut -b1-12)" : Starting OpenLink Virtuoso Universal Server..."
 virtuoso-t -f > /sparql-snb/virtuoso_run.log 2>&1 &

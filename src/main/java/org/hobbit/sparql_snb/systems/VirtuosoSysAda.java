@@ -1,10 +1,12 @@
 package org.hobbit.sparql_snb.systems;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -102,7 +104,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 	public void receiveGeneratedTask(String taskId, byte[] data) {
 		ByteBuffer buffer = ByteBuffer.wrap(data);
 		String queryString = RabbitMQUtils.readString(buffer);
-		
+		LOGGER.info(queryString);
 		if (queryString.contains("INSERT DATA")) {
 			
 			//TODO: Virtuoso hack
@@ -188,8 +190,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
                 updateExecFactory.createUpdateProcessor(updateRequest).execute();
             }
 
-            phase2 = false;
-    		loadDataset();
+            loadDataset();
     		
     		try {
     			String datasetsFolderName = System.getProperty("user.dir") + File.separator + "datasets"; 
@@ -200,6 +201,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
     			e.printStackTrace();
     		}
     		
+            phase2 = false;
     		LOGGER.info("Bulk phase is over.");
     	}
     	super.receiveCommand(command, data);
@@ -211,12 +213,12 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
     	Process p;
     	try {
     		p = new ProcessBuilder(command).redirectErrorStream(true).start();
-//    		BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+    		BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
     		p.waitFor();
-//    		String line = null;
-//    		while ( (line = reader.readLine()) != null) {
-//    			LOGGER.info(line);
-//    		}
+    		String line = null;
+    		while ( (line = reader.readLine()) != null) {
+    			LOGGER.info(line);
+    		}
     	} catch (IOException e) {
     		// TODO Auto-generated catch block
     		e.printStackTrace();
