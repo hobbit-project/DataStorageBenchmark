@@ -104,7 +104,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 	public void receiveGeneratedTask(String taskId, byte[] data) {
 		ByteBuffer buffer = ByteBuffer.wrap(data);
 		String queryString = RabbitMQUtils.readString(buffer);
-		LOGGER.info(queryString);
+//		LOGGER.info(queryString);
 		if (queryString.contains("INSERT DATA")) {
 			
 			//TODO: Virtuoso hack
