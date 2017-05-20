@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#sudo ln -s isql-v isql
+sudo ln -s /usr/local/virtuoso-opensource/bin/isql-v /usr/local/virtuoso-opensource/bin/isql
 
 rm virtuoso_run.log 2> /dev/null
 cp virtuoso_vos.ini.template virtuoso.ini

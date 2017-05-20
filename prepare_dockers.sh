@@ -10,7 +10,7 @@ docker build -f docker/sparql-snbevaluationmodule.docker -t git.project-hobbit.e
 
 #docker push git.project-hobbit.eu:4567/mspasic/sparql-snbvirtuososystem
 docker push git.project-hobbit.eu:4567/mspasic/virtuososystem
-docker push git.project-hobbit.eu:4567/mspasic/virtuosocomsystem
+#docker push git.project-hobbit.eu:4567/mspasic/virtuosocomsystem
 docker push git.project-hobbit.eu:4567/mspasic/sparql-snbbenchmarkcontroller
 docker push git.project-hobbit.eu:4567/mspasic/sparql-snbdatagenerator
 docker push git.project-hobbit.eu:4567/mspasic/sparql-snbtaskgenerator
