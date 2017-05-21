@@ -121,7 +121,7 @@ public class SNBDataGenerator extends AbstractDataGenerator {
         			builder.append(lines[i]);
         			if (!lines[i].startsWith("LdbcUpdate")) {
         				String l = null;
-        				while(!(l = inputStream2.readLine()).equals("")) {
+        				while((l = inputStream2.readLine()) != null && !l.equals("")) {
         				    builder.append("\n" + l);
         				}
         			}

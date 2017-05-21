@@ -2,6 +2,7 @@ package org.hobbit.sparql_snb;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.jena.rdf.model.NodeIterator;
@@ -177,6 +178,12 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
     	if (VirtuosoSystemAdapterConstants.BULK_LOAD_DATA_GEN_FINISHED_FROM_DATAGEN == command) {
     		loadingStarted = System.currentTimeMillis();
     		try {
+        		try {
+        			TimeUnit.SECONDS.sleep(2);
+        		} catch (InterruptedException e) {
+        			// TODO Auto-generated catch block
+        			e.printStackTrace();
+        		}
 				sendToCmdQueue(VirtuosoSystemAdapterConstants.BULK_LOAD_DATA_GEN_FINISHED);
 			} catch (IOException e) {
 				e.printStackTrace();

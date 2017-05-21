@@ -313,12 +313,14 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
         String type = lines[0].replaceAll("[{].*", "");
         String eAnswers = eStr.replaceFirst("[^\n]*\n", "");
         
-        if (!type.startsWith("LdbcUpdate"))
+        if (!type.startsWith("LdbcUpdate")) {
+//        	LOGGER.info(taskSentTimestamp + " " + rStr);
         	if (!eAnswers.trim().equals(rStr.trim())) {
         		wrongAnswers.add(lines[0] + " : " + eAnswers.length() + " - " + rStr.length());
         		wrongAnswers.add(eAnswers.trim());
         		wrongAnswers.add(rStr.trim());
         	}
+        }
         
         if (!executionTimes.containsKey(type))
         	executionTimes.put(type, new ArrayList<Long>());
