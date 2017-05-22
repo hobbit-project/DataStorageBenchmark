@@ -1,1 +1,1 @@
-# sparql-snb
+# DataStorageBenchmark
