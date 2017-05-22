@@ -130,25 +130,37 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 		else {
 			long timestamp1 = System.currentTimeMillis();
 			this.selectsReceived++;
+//			LOGGER.info(taskId + ": " + queryString);
 			// Create a QueryExecution object from a query string ...
 			QueryExecution qe = queryExecFactory.createQueryExecution(queryString);
+			
+			ResultSet results = null;
+			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+			
 			// and run it.
 			try {
-				ResultSet results = qe.execSelect();
-				ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+				results = qe.execSelect();
 				ResultSetFormatter.outputAsJSON(outputStream, results);
-				try {
-					this.sendResultToEvalStorage(taskId, outputStream.toByteArray());
-					long timestamp2 = System.currentTimeMillis();
-//					LOGGER.info("TIME: " + (timestamp2-timestamp1));
-				} catch (IOException e) {
-					LOGGER.error("Got an exception while sending results.", e);
-				}
-
 			} catch (Exception e) {
+				LOGGER.info("Problem while executing task " + taskId + ": " + queryString);
+				//TODO: fix this hacking
+				try {
+					outputStream.write("{\"head\":{\"vars\":[\"xxx\"]},\"results\":{\"bindings\":[{\"xxx\":{\"type\":\"literal\",\"value\":\"XXX\"}}]}}".getBytes());
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 				e.printStackTrace();
 			} finally {
 				qe.close();
+			}
+			
+			try {
+				this.sendResultToEvalStorage(taskId, outputStream.toByteArray());
+				long timestamp2 = System.currentTimeMillis();
+//				LOGGER.info("TIME: " + (timestamp2-timestamp1));
+			} catch (IOException e) {
+				LOGGER.error("Got an exception while sending results.", e);
 			}
 			this.selectsProcessed++;
 		}
