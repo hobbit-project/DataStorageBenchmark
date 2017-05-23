@@ -22,7 +22,7 @@ RUN (echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true
 ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
 ENV PATH $JAVA_HOME/bin:$PATH
 
-ADD target/sparql-snb-1.0.0-SNAPSHOT.jar /sparql-snb/sparql-snb.jar
+ADD target/DataStorageBenchmark-1.0.0-SNAPSHOT.jar /sparql-snb/DataStorageBenchmark.jar
 
 COPY system/ /sparql-snb/
 

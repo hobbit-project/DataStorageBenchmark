@@ -9,4 +9,4 @@ bash /opt/virtuoso/install/command-oplmgr.sh start
 bash virtuoso-start.sh
 
 cd /sparql-snb
-java -cp sparql-snb.jar org.hobbit.core.run.ComponentStarter1 org.hobbit.sparql_snb.systems.VirtuosoSysAda
+java -cp DataStorageBenchmark.jar org.hobbit.core.run.ComponentStarter1 org.hobbit.sparql_snb.systems.VirtuosoSysAda
