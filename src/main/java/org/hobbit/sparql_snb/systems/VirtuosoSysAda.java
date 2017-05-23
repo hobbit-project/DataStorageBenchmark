@@ -133,6 +133,8 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 //			LOGGER.info(taskId + ": " + queryString);
 			// Create a QueryExecution object from a query string ...
 			QueryExecution qe = queryExecFactory.createQueryExecution(queryString);
+//			QueryExecution qe = QueryExecutionFactory.sparqlService("http://" + virtuosoContName + ":8890/sparql",
+//					queryString);
 			
 			ResultSet results = null;
 			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -181,7 +183,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
     	
     	queryExecFactory = new QueryExecutionFactoryHttp("http://" + virtuosoContName + ":8890/sparql");
 		//This is needed for ODIN bench
-        queryExecFactory = new QueryExecutionFactoryPaginated(queryExecFactory, 100);
+        //queryExecFactory = new QueryExecutionFactoryPaginated(queryExecFactory, 100);
     	
         // create update factory
         HttpAuthenticator auth = new SimpleAuthenticator("dba", "dba".toCharArray());
