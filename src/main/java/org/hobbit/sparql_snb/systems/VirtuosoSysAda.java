@@ -160,7 +160,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 			try {
 				this.sendResultToEvalStorage(taskId, outputStream.toByteArray());
 				long timestamp2 = System.currentTimeMillis();
-				LOGGER.info("Task " + taskId + " executed in " + (timestamp2-timestamp1) + "milliseconds.");
+				LOGGER.info("Task " + taskId + " executed in " + (timestamp2-timestamp1) + "milliseconds, received at: " + timestamp1);
 			} catch (IOException e) {
 				LOGGER.error("Got an exception while sending results.", e);
 			}
