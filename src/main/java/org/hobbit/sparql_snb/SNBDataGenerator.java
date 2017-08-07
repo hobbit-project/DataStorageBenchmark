@@ -75,7 +75,7 @@ public class SNBDataGenerator extends AbstractDataGenerator {
     }
     
     private void downloadFileAndSendData() {
-    	String directory = "http://hobbitdata.informatik.uni-leipzig.de/mighty-storage-challenge/Task2/sf" + scaleFactor + "/";
+    	String directory = "http://hobbitdata.informatik.uni-leipzig.de/MOCHA_OC/T2/sf" + scaleFactor + "/";
     	String datasetFiles = directory + "dataset_files.txt";
     	try { 
 			InputStream is = new URL(datasetFiles).openStream();
@@ -83,8 +83,6 @@ public class SNBDataGenerator extends AbstractDataGenerator {
 			is.close();
 			
     		for (String remoteFile : files) {
-    			//TODO: Change this (instead of poincare -> directory)
-    			//remoteFile = "http://poincare.matf.bg.ac.rs/~mirko/" + remoteFile;
     			remoteFile = directory + remoteFile;
     			LOGGER.info("Downloading file " + remoteFile);           
     			InputStream inputStream = new URL(remoteFile).openStream();
@@ -107,28 +105,35 @@ public class SNBDataGenerator extends AbstractDataGenerator {
     @Override
     public void receiveCommand(byte command, byte[] data) {
         if (command == VirtuosoSystemAdapterConstants.BULK_LOADING_DATA_FINISHED) {
-        	String tasksFile = "http://hobbitdata.informatik.uni-leipzig.de/mighty-storage-challenge/Task2/sf1/tasks.txt";
-        	String answersFile = "http://hobbitdata.informatik.uni-leipzig.de/mighty-storage-challenge/Task2/sf1/answers.txt";
-        	LOGGER.info("Downloading tasks");
+        	String directory = "http://hobbitdata.informatik.uni-leipzig.de/MOCHA_OC/T2/sf" + scaleFactor + "/";
+        	String updateFile1 = directory + "updateStream_0_0_person.csv";
+        	String updateFile2 = directory + "updateStream_0_0_forum.csv";
+        	LOGGER.info("Downloading updates");
         	try {            
-        		InputStream inputStream1 = new URL(tasksFile).openStream();
-        		BufferedReader inputStream2 = new BufferedReader(new InputStreamReader(new URL(answersFile).openStream()));
+        		InputStream inputStream1 = new URL(updateFile1).openStream();
+        		InputStream inputStream2 = new URL(updateFile2).openStream();
         		byte[] bytesArray = null;
-        		String fileContent = IOUtils.toString(inputStream1);
-        		String [] lines = fileContent.split("\n");
-        		for (int i = 0; i < lines.length && i < numberOfOperations; i++) {
-        			StringBuilder builder = new StringBuilder();
-        			builder.append(lines[i]);
-        			if (!lines[i].startsWith("LdbcUpdate")) {
-        				String l = null;
-        				while((l = inputStream2.readLine()) != null && !l.equals("")) {
-        				    builder.append("\n" + l);
-        				}
-        			}
-        			bytesArray = RabbitMQUtils.writeString(builder.toString());
+        		String fileContent1 = IOUtils.toString(inputStream1);
+        		String fileContent2 = IOUtils.toString(inputStream2);
+        		String [] lines1 = fileContent1.split("\n");
+        		String [] lines2 = fileContent2.split("\n");
+        		int i = 0, j = 0;
+        		while (i < lines1.length && j < lines2.length && i+j < numberOfOperations) {
+        			if (lines1[i].compareTo(lines2[j]) < 0)
+        				bytesArray = RabbitMQUtils.writeString(lines1[i++]);
+        			else
+        				bytesArray = RabbitMQUtils.writeString(lines2[j++]);
         			sendDataToTaskGenerator(bytesArray);
         		}
-        		LOGGER.info("Files with tasks have been downloaded successfully and sent.");
+        		while (i < lines1.length && i+j < numberOfOperations) {
+        			bytesArray = RabbitMQUtils.writeString(lines1[i++]);
+        			sendDataToTaskGenerator(bytesArray);
+        		}
+        		while (j < lines2.length && i+j < numberOfOperations) {
+        			bytesArray = RabbitMQUtils.writeString(lines2[j++]);
+        			sendDataToTaskGenerator(bytesArray);
+        		}
+        		LOGGER.info("Files with updates have been downloaded successfully and sent.");
         		inputStream1.close();
         		inputStream2.close();
         	} catch (IOException ex) {

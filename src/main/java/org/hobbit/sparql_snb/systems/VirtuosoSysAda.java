@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.TimeUnit;
 
 import org.aksw.jena_sparql_api.core.QueryExecutionFactory;
 import org.aksw.jena_sparql_api.core.UpdateExecutionFactory;
@@ -255,6 +256,12 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
     		updateExecFactory.close();
     	} catch (Exception e) {
     	}
+//		try {
+//			TimeUnit.SECONDS.sleep(10);
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
     	super.close();
     	LOGGER.info("Virtuoso has stopped.");
     }

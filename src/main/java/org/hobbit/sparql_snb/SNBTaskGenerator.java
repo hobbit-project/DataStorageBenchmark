@@ -13,18 +13,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.hobbit.core.components.AbstractSequencingTaskGenerator;
+import org.hobbit.core.components.AbstractTaskGenerator;
 import org.hobbit.core.rabbit.RabbitMQUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
+public class SNBTaskGenerator extends AbstractTaskGenerator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SNBTaskGenerator.class);
 	
@@ -124,13 +127,14 @@ public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
 	protected void generateTask(byte[] data) throws Exception {
         String taskIdString = getNextTaskId();
         long timestamp = System.currentTimeMillis();
-        
-        if (taskIdString.endsWith("00"))
-        	LOGGER.info("Curentlly executing task " + taskIdString);
-        
         String dataString = RabbitMQUtils.readString(data);
-        String [] lines = dataString.split("\n");
-        String queryText = prepareQueryText(lines[0]);
+        
+        String [] parts = dataString.split("[|]");
+//        if (taskIdString.endsWith("00"))
+        	LOGGER.info("Curentlly executing task " + taskIdString + " at " + parts[0] + " of type " + parts[2]);
+        
+        String queryText = prepareUpdateText(dataString);
+//        LOGGER.info(queryText);
         byte[] task = RabbitMQUtils.writeByteArrays(new byte[][] { RabbitMQUtils.writeString(queryText) });
         sendTaskToSystemAdapter(taskIdString, task);
 
@@ -138,57 +142,60 @@ public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
         sendTaskToEvalStorage(taskIdString, timestamp, data);
 	}
 	
-    private String prepareQueryText(String text) throws Exception {
-    	String [] parts = text.split("[{]", 2);
-    	String queryType = parts[0];
-    	String [] arguments = parts[1].substring(0, parts[1].length()-1).split(", ");
-    	String queryString = preparePrefixes();;
-    	if (queryType.startsWith("LdbcUpdate")) {
-    		queryString += "INSERT DATA { GRAPH <https://github.com/hobbit-project/sparql-snb> {\n" + prepareTriplets(queryType, parts[1].substring(0, parts[1].length()-1)) + "\n}\n}\n";
-    	}
-    	else {
-    		if (queryType.startsWith("LdbcQuery")) {
-    			queryString += file2string(new File("snb_queries", "query" + queryType.replaceAll("[^0-9]*", "") + ".txt"));
-    		}
-    		else {
-    			queryString += file2string(new File("snb_queries", "s" + queryType.replaceAll("[^0-9]*", "") + ".txt"));
-    		}
-    		for (String arg : arguments) {
-    			String [] tmp = arg.split("=");
-    			switch (tmp[0]) {
-    			case "personId":
-    				if (queryType.startsWith("LdbcQuery"))
-    					queryString = queryString.replaceAll("%" + tmp[0] + "%", String.format("%020d", Long.parseLong(tmp[1])));
-    				else
-    					queryString = queryString.replaceAll("%" + tmp[0] + "%", tmp[1]);
-    				break;
-    			case "maxDate":
-    			case "minDate":
-    			case "startDate":
-    				DateFormat format1 = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
-    				Date date = format1.parse(tmp[1]);
-    				DateFormat format2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'+00:00'");
-    				queryString = queryString.replaceAll("%" + tmp[0] + "%", format2.format(date));
-    				break;
-    			case "month":
-    				queryString = queryString.replaceAll("%month1%", tmp[1]);
-    				int nextMonth = Integer.parseInt(tmp[1]) + 1;
-    				if (nextMonth == 13)
-    					nextMonth = 1;
-    				queryString = queryString.replaceAll("%month2%", String.valueOf(nextMonth));
-    				break;
-    			case "countryXName":
-    			case "countryYName":
-    			case "tagClassName":
-    				queryString = queryString.replaceAll("%" + tmp[0] + "%", tmp[1].substring(1, tmp[1].length()-1));
-    				break;
-    			default:
-    				queryString = queryString.replaceAll("%" + tmp[0] + "%", tmp[1]);
-    				break;
-    			}
-    		}
-    	}
-
+    private String prepareUpdateText(String text) throws Exception {
+//    	String [] parts = text.split("[{]", 2);
+//    	String queryType = parts[0];
+//    	String [] arguments = parts[1].substring(0, parts[1].length()-1).split(", ");
+//    	String queryString = preparePrefixes();
+//    	if (queryType.startsWith("LdbcUpdate")) {
+//    		queryString += "INSERT DATA { GRAPH <https://github.com/hobbit-project/sparql-snb> {\n" + prepareTriplets(queryType, parts[1].substring(0, parts[1].length()-1)) + "\n}\n}\n";
+//    	}
+//    	else {
+//    		if (queryType.startsWith("LdbcQuery")) {
+//    			queryString += file2string(new File("snb_queries", "query" + queryType.replaceAll("[^0-9]*", "") + ".txt"));
+//    		}
+//    		else {
+//    			queryString += file2string(new File("snb_queries", "s" + queryType.replaceAll("[^0-9]*", "") + ".txt"));
+//    		}
+//    		for (String arg : arguments) {
+//    			String [] tmp = arg.split("=");
+//    			switch (tmp[0]) {
+//    			case "personId":
+//    				if (queryType.startsWith("LdbcQuery"))
+//    					queryString = queryString.replaceAll("%" + tmp[0] + "%", String.format("%020d", Long.parseLong(tmp[1])));
+//    				else
+//    					queryString = queryString.replaceAll("%" + tmp[0] + "%", tmp[1]);
+//    				break;
+//    			case "maxDate":
+//    			case "minDate":
+//    			case "startDate":
+//    				DateFormat format1 = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
+//    				Date date = format1.parse(tmp[1]);
+//    				DateFormat format2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'+00:00'");
+//    				queryString = queryString.replaceAll("%" + tmp[0] + "%", format2.format(date));
+//    				break;
+//    			case "month":
+//    				queryString = queryString.replaceAll("%month1%", tmp[1]);
+//    				int nextMonth = Integer.parseInt(tmp[1]) + 1;
+//    				if (nextMonth == 13)
+//    					nextMonth = 1;
+//    				queryString = queryString.replaceAll("%month2%", String.valueOf(nextMonth));
+//    				break;
+//    			case "countryXName":
+//    			case "countryYName":
+//    			case "tagClassName":
+//    				queryString = queryString.replaceAll("%" + tmp[0] + "%", tmp[1].substring(1, tmp[1].length()-1));
+//    				break;
+//    			default:
+//    				queryString = queryString.replaceAll("%" + tmp[0] + "%", tmp[1]);
+//    				break;
+//    			}
+//    		}
+//    	}
+    	
+    	String queryString = preparePrefixes();
+    	String [] parts = text.split("[|]", -1);
+    	queryString += "INSERT DATA { GRAPH <https://github.com/hobbit-project/sparql-snb> {\n" + prepareTriplets(parts) + "\n}\n}\n";
 		return queryString;
 	}
     
@@ -202,54 +209,51 @@ public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
 				"PREFIX rdfs:        <http://www.w3.org/2000/01/rdf-schema#>\n";
 	}
 
-	private String prepareTriplets(String queryType, String arguments) throws UnsupportedEncodingException, ParseException {
-		if (queryType.equals("LdbcUpdate1AddPerson")) {
-			long personId = Long.parseLong(extractWord(arguments, personIdPattern));
-			String personFirstName = extractWord(arguments, personFirstNamePattern);
-			String personLastName = extractWord(arguments, personLastNamePattern);
-			String gender = extractWord(arguments, genderPattern);
-			DateFormat format1 = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
-			Date birthday = null;
-			try {
-				birthday = format1.parse(extractWord(arguments, birthdayPattern));
-			} catch (ParseException e) {
-				//NOTHING
-			}
-			Date creationDate = format1.parse(extractWord(arguments, creationDatePattern));
-			String locationIp = extractWord(arguments, locationIpPattern);
-			String browserUsed = extractWord(arguments, browserUsedPattern);
-			long cityId = Long.parseLong(extractWord(arguments, cityIdPattern));
-			List<String> languages = new ArrayList<String>(Arrays.asList(extractWord(arguments, languagesPattern).split(", ")));
+	private String prepareTriplets(String [] parts) throws UnsupportedEncodingException {
+    	long unixTime = Long.parseLong(parts[0]);
+    	//TODO: Ignoring parts[1]
+    	int updateType = Integer.parseInt(parts[2]);
+    	// Add person
+		if (updateType == 1) {
+	    	long personId = Long.parseLong(parts[3]);
+	    	String personFirstName = parts[4];
+	    	String personLastName = parts[5];
+	    	String gender = parts[6];
+	        Date birthday = null;
+	        if (!parts[7].equals(""))
+	        	birthday = new Date(Long.parseLong(parts[7]));
+	        Date creationDate = new Date(Long.parseLong(parts[8]));
+	        String locationIp = parts[9];
+	        String browserUsed = parts[10];
+	        long cityId = Long.parseLong(parts[11]);
+	        List<String> languages = Arrays.asList(parts[12].split("[;]"));
 			if (languages.size() == 1 && languages.get(0).equals(""))
-				languages.clear();
-			List<String> emails = new ArrayList<String>(Arrays.asList(extractWord(arguments, emailsPattern).split(", ")));
+				languages = new ArrayList<>();
+	        List<String> emails = Arrays.asList(parts[13].split("[;]"));
 			if (emails.size() == 1 && emails.get(0).equals(""))
-				emails.clear();
-			List<String> tagIds1 = new ArrayList<String>(Arrays.asList(extractWord(arguments, tagIdsPattern).split(", ")));
-			if (tagIds1.size() == 1 && tagIds1.get(0).equals(""))
-				tagIds1.clear();
-			List<Long> tagIds = new ArrayList<Long>();
-			for (String s : tagIds1)
-				tagIds.add(Long.valueOf(s));
-			List<String> universities = new ArrayList<String>(Arrays.asList(extractWord(arguments, studyAtPattern).split("\\}, ")));
-			if (universities.size() == 1 && universities.get(0).equals(""))
-				universities.clear();
-			List<Long> studyAtOrgIds = new ArrayList<Long>();
-			List<Integer> studyAtYears = new ArrayList<Integer>();
-				for (String u : universities) {
-					studyAtOrgIds.add(Long.parseLong(extractWord(u, organizationIdPattern)));
-					studyAtYears.add(Integer.parseInt(extractWord(u, yearPattern)));
-				}
-			List<String> companies = new ArrayList<String>(Arrays.asList(extractWord(arguments, workAtPattern).split("\\}, ")));
-			if (companies.size() == 1 && companies.get(0).equals(""))
-				companies.clear();
-			List<Long> workAtOrgIds = new ArrayList<Long>();
-			List<Long> workAtYears = new ArrayList<Long>();
-				for (String c : companies) {
-					workAtOrgIds.add(Long.parseLong(extractWord(c, organizationIdPattern)));
-					workAtYears.add(Long.parseLong(extractWord(c, yearPattern))); 
-				}
-			
+				emails = new ArrayList<>();
+	        List<String> tagIdsStr = Arrays.asList(parts[14].split("[;]"));
+			if (tagIdsStr.size() == 1 && tagIdsStr.get(0).equals(""))
+				tagIdsStr = new ArrayList<>();
+	        List<Long> tagIds = new ArrayList<Long>();
+	        for (String s : tagIdsStr) {
+				tagIds.add(Long.parseLong(s));
+			}
+	        List<String> studyAtStr = Arrays.asList(parts[15].split("[;,]"));
+	        if (studyAtStr.size() == 1 && studyAtStr.get(0).equals(""))
+	        	studyAtStr = new ArrayList<>();
+	        List<Long> studyAt = new ArrayList<Long>();
+	        for (String s : studyAtStr) {
+	        	studyAt.add(Long.parseLong(s));
+			}
+	        List<String> workAtStr = Arrays.asList(parts[16].split("[;,]"));
+	        if (workAtStr.size() == 1 && workAtStr.get(0).equals(""))
+	        	workAtStr = new ArrayList<>();
+	        List<Long> workAt = new ArrayList<Long>();
+	        for (String s : workAtStr) {
+	        	workAt.add(Long.parseLong(s));
+			}
+	        			
 			String personUri = "<http://www.ldbc.eu/ldbc_socialnet/1.0/data/pers" + String.format("%020d", personId) + ">";
             DateFormat df1 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'+00:00'");
             DateFormat df2 = new SimpleDateFormat("yyyy-MM-dd");
@@ -277,17 +281,17 @@ public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
                     triplets.add(personUri + " <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/email> \"" + emails.get(k) + "\" .");
             for (int k = 0; k < tagIds.size(); k++)
                 triplets.add(personUri + " <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/hasInterest> <" + tagUri(tagIds.get(k)) + "> .");
-            for (int k = 0; k < studyAtOrgIds.size(); k++)
-                triplets.add(personUri + " <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/studyAt> [ <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/hasOrganisation> <" + universityUri(studyAtOrgIds.get(k)) + ">; <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/classYear> \"" + studyAtYears.get(k) + "\"] .");
-            for (int k = 0; k < workAtOrgIds.size(); k++)
-                triplets.add(personUri + " <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/workAt> [ <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/hasOrganisation> <" + companyUri(workAtOrgIds.get(k)) + ">; <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/workFrom> \"" + workAtYears.get(k) + "\"] .");
+            for (int k = 0; k < studyAt.size(); k+=2)
+                triplets.add(personUri + " <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/studyAt> [ <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/hasOrganisation> <" + universityUri(studyAt.get(k)) + ">; <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/classYear> \"" + studyAt.get(k+1) + "\"] .");
+            for (int k = 0; k < workAt.size(); k+=2)
+                triplets.add(personUri + " <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/workAt> [ <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/hasOrganisation> <" + companyUri(workAt.get(k)) + ">; <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/workFrom> \"" + workAt.get(k+1) + "\"] .");
             return String.join("\n", triplets);
 		}
-		else if (queryType.equals("LdbcUpdate2AddPostLike")) {
-			long personId = Long.parseLong(extractWord(arguments, personIdPattern));
-			long postId = Long.parseLong(extractWord(arguments, postIdPattern));
-			DateFormat format1 = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
-			Date creationDate = format1.parse(extractWord(arguments, creationDatePattern));
+		// Add PostLike
+		else if (updateType == 2) {
+			long personId = Long.parseLong(parts[3]);
+			long postId = Long.parseLong(parts[4]);
+			Date creationDate = new Date(Long.parseLong(parts[5]));
 			String personUri = "<http://www.ldbc.eu/ldbc_socialnet/1.0/data/pers" + String.format("%020d", personId) + ">";
             String postUri = "<http://www.ldbc.eu/ldbc_socialnet/1.0/data/post" + String.format("%020d", postId) + ">";
             DateFormat df1 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'+00:00'");
@@ -296,11 +300,11 @@ public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
             triplets[0] = personUri + " <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/likes> [ <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/hasPost> " + postUri + "; <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/creationDate> \"" + df1.format(creationDate) + "\"^^xsd:dateTime ] .";
             return String.join("\n", triplets);
 		}
-		else if (queryType.equals("LdbcUpdate3AddCommentLike")) {
-			long personId = Long.parseLong(extractWord(arguments, personIdPattern));
-			long commentId = Long.parseLong(extractWord(arguments, commentIdPattern));
-			DateFormat format1 = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
-			Date creationDate = format1.parse(extractWord(arguments, creationDatePattern));
+		// Add CommentLike
+		else if (updateType == 3) {
+			long personId = Long.parseLong(parts[3]);
+			long commentId = Long.parseLong(parts[4]);
+			Date creationDate = new Date(Long.parseLong(parts[5]));
 			String personUri = "<http://www.ldbc.eu/ldbc_socialnet/1.0/data/pers" + String.format("%020d", personId) + ">";
             String commentUri = "<http://www.ldbc.eu/ldbc_socialnet/1.0/data/comm" + String.format("%020d", commentId) + ">";
             DateFormat df1 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'+00:00'");
@@ -309,19 +313,19 @@ public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
             triplets[0] = personUri + " <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/likes> [ <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/hasComment> " + commentUri + "; <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/creationDate> \"" + df1.format(creationDate) + "\"^^xsd:dateTime ] .";
             return String.join("\n", triplets);
 		}
-		else if (queryType.equals("LdbcUpdate4AddForum")) {
-			long forumId = Long.parseLong(extractWord(arguments, forumIdPattern));
-			String forumTitle = extractWord(arguments, forumTitlePattern);
-			DateFormat format1 = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
-			Date creationDate = format1.parse(extractWord(arguments, creationDatePattern));
-			long moderatorPersonId = Long.parseLong(extractWord(arguments, moderatorPersonIdPattern));
-			List<String> tagIds1 = new ArrayList<String>(Arrays.asList(extractWord(arguments, tagIdsPattern).split(", ")));
-			if (tagIds1.size() == 1 && tagIds1.get(0).equals(""))
-				tagIds1.clear();
-			List<Long> tagIds = new ArrayList<Long>();
-			for (String s : tagIds1)
-				tagIds.add(Long.valueOf(s));
-			
+		// Add Forum
+		else if (updateType == 4) {
+			long forumId = Long.parseLong(parts[3]);
+			String forumTitle = parts[4];
+			Date creationDate = new Date(Long.parseLong(parts[5]));
+			long moderatorPersonId = Long.parseLong(parts[6]);
+			List<String> tagIdsStr = Arrays.asList(parts[7].split("[;]"));
+			if (tagIdsStr.size() == 1 && tagIdsStr.get(0).equals(""))
+				tagIdsStr = new ArrayList<>();
+	        List<Long> tagIds = new ArrayList<Long>();
+	        for (String s : tagIdsStr) {
+				tagIds.add(Long.parseLong(s));
+			}
 			String forumUri = "<http://www.ldbc.eu/ldbc_socialnet/1.0/data/forum" + String.format("%020d", forumId) + ">";
 			String moderatorUri = "<http://www.ldbc.eu/ldbc_socialnet/1.0/data/pers" + String.format("%020d", moderatorPersonId) + ">";
 			DateFormat df1 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'+00:00'");
@@ -336,11 +340,11 @@ public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
 				triplets[5 + k] = forumUri + " <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/hasTag> <" + tagUri(tagIds.get(k)) + "> .";
 			return String.join("\n", triplets);
 		}
-		else if (queryType.equals("LdbcUpdate5AddForumMembership")) {
-			long personId = Long.parseLong(extractWord(arguments, personIdPattern));
-			long forumId = Long.parseLong(extractWord(arguments, forumIdPattern));
-			DateFormat format1 = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
-			Date joinDate = format1.parse(extractWord(arguments, joinDatePattern));
+		// Add Forum Membership
+		else if (updateType == 5) {
+			long personId = Long.parseLong(parts[3]);
+			long forumId = Long.parseLong(parts[4]);
+			Date joinDate = new Date(Long.parseLong(parts[5]));
 			String forumUri = "<http://www.ldbc.eu/ldbc_socialnet/1.0/data/forum" + String.format("%020d", forumId) + ">";
             String memberUri = "<http://www.ldbc.eu/ldbc_socialnet/1.0/data/pers" + String.format("%020d", personId) + ">";
             DateFormat df1 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'+00:00'");
@@ -349,30 +353,32 @@ public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
             triplets[0] = forumUri + " <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/hasMember> [ <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/hasPerson> " + memberUri + "; <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/joinDate> \"" + df1.format(joinDate) + "\"] .";
             return String.join("\n", triplets);
 		}
-		else if (queryType.equals("LdbcUpdate6AddPost")) {
-			long postId = Long.parseLong(extractWord(arguments, postIdPattern));
-			String imageFile = extractWord(arguments, imageFilePattern);
-			DateFormat format1 = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
-			Date creationDate = format1.parse(extractWord(arguments, creationDatePattern));
-			String locationIp = extractWord(arguments, locationIpPattern);
-			String browserUsed = extractWord(arguments, browserUsedPattern);
-			String language = extractWord(arguments, languagePattern);
-			String content = extractWord(arguments, contentPattern);
-			int length = Integer.parseInt(extractWord(arguments, lengthPattern));
-			long authorPersonId = Long.parseLong(extractWord(arguments, authorPersonIdPattern));
-			long forumId = Long.parseLong(extractWord(arguments, forumIdPattern));
-			Long countryId = Long.parseLong(extractWord(arguments, countryIdPattern));
-			List<String> tagIds1 = new ArrayList<String>(Arrays.asList(extractWord(arguments, tagIdsPattern).split(", ")));
+		// Add Post
+		else if (updateType == 6) {
+			long postId = Long.parseLong(parts[3]);
+			String imageFile = parts[4];
+			Date creationDate = new Date(Long.parseLong(parts[5]));
+			String locationIp = parts[6];
+			String browserUsed = parts[7];
+			String language = parts[8];
+			String content = parts[9];
+			int length = Integer.parseInt(parts[10]);
+			long authorPersonId = Long.parseLong(parts[11]);
+			long forumId = Long.parseLong(parts[12]);
+			Long countryId = (long) -1;
+			if (!parts[13].equals(""))
+				countryId = Long.parseLong(parts[13]);
+			List<String> tagIds1 = Arrays.asList(parts[14].split(";"));
 			if (tagIds1.size() == 1 && tagIds1.get(0).equals(""))
-				tagIds1.clear();
+				tagIds1 = new ArrayList<>();
 			List<Long> tagIds = new ArrayList<Long>();
 			for (String s : tagIds1)
 				tagIds.add(Long.valueOf(s));
-			List<String> mentionedIds = new ArrayList<String>(Arrays.asList(extractWord(arguments, mentionedIdsPattern).split(", ")));
+			List<String> mentionedIds = Arrays.asList(parts[15].split(";"));
 			if (mentionedIds.size() == 1 && mentionedIds.get(0).equals(""))
-				mentionedIds.clear();
-			String privacy = extractWord(arguments, privacyPattern);
-			String link = extractWord(arguments, linkPattern);
+				mentionedIds = new ArrayList<>();
+			String privacy = parts[16];
+			String link = parts[17];
 
             String postUri = "<http://www.ldbc.eu/ldbc_socialnet/1.0/data/post" + String.format("%020d", postId) + ">";
             String forumUri = "<http://www.ldbc.eu/ldbc_socialnet/1.0/data/forum" + String.format("%020d", forumId) + ">";
@@ -407,32 +413,33 @@ public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
             if (!link.equals(""))
                 triplets.add(postUri + " <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/links> \"" + link + "\" .");
             return String.join("\n", triplets);
-            
 		}
-		else if (queryType.equals("LdbcUpdate7AddComment")) {
-			long commentId = Long.parseLong(extractWord(arguments, commentIdPattern));
-			DateFormat format1 = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
-			Date creationDate = format1.parse(extractWord(arguments, creationDatePattern));
-			String locationIp = extractWord(arguments, locationIpPattern);
-			String browserUsed = extractWord(arguments, browserUsedPattern);
-			String content = extractWord(arguments, contentPattern);
-			int length = Integer.parseInt(extractWord(arguments, lengthPattern));
-			long authorPersonId = Long.parseLong(extractWord(arguments, authorPersonIdPattern));
-			Long countryId = Long.parseLong(extractWord(arguments, countryIdPattern));
-			Long replyToPostId = Long.parseLong(extractWord(arguments, replyToPostIdPattern));
-			Long replyToCommentId = Long.parseLong(extractWord(arguments, replyToCommentIdPattern));
-			List<String> tagIds1 = new ArrayList<String>(Arrays.asList(extractWord(arguments, tagIdsPattern).split(", ")));
+		// Add Comment
+		else if (updateType == 7) {
+			long commentId = Long.parseLong(parts[3]);
+			Date creationDate = new Date(Long.parseLong(parts[4]));
+			String locationIp = parts[5];
+			String browserUsed = parts[6];
+			String content = parts[7];
+			int length = Integer.parseInt(parts[8]);
+			long authorPersonId = Long.parseLong(parts[9]);
+			Long countryId = (long) -1;
+			if (!parts[10].equals(""))
+				countryId = Long.parseLong(parts[10]);
+			Long replyToPostId = Long.parseLong(parts[11]);
+			Long replyToCommentId = Long.parseLong(parts[12]);
+			List<String> tagIds1 = Arrays.asList(parts[13].split(";"));
 			if (tagIds1.size() == 1 && tagIds1.get(0).equals(""))
-				tagIds1.clear();
+				tagIds1 = new ArrayList<>();
 			List<Long> tagIds = new ArrayList<Long>();
 			for (String s : tagIds1)
 				tagIds.add(Long.valueOf(s));
-			List<String> mentionedIds = new ArrayList<String>(Arrays.asList(extractWord(arguments, mentionedIdsPattern).split(", ")));
+			List<String> mentionedIds = Arrays.asList(parts[14].split(";"));
 			if (mentionedIds.size() == 1 && mentionedIds.get(0).equals(""))
-				mentionedIds.clear();
-			String privacy = extractWord(arguments, privacyPattern);
-			String link = extractWord(arguments, linkPattern);
-			String gif = extractWord(arguments, gifPattern);
+				mentionedIds = new ArrayList<>();
+			String privacy = parts[15];
+			String link = parts[16];
+			String gif = parts[17];
 			
 			String commentUri = "<http://www.ldbc.eu/ldbc_socialnet/1.0/data/comm" + String.format("%020d", commentId) + ">";
             String authorUri = "<http://www.ldbc.eu/ldbc_socialnet/1.0/data/pers" + String.format("%020d", authorPersonId) + ">";
@@ -470,11 +477,11 @@ public class SNBTaskGenerator extends AbstractSequencingTaskGenerator {
                 triplets.add(commentUri + " <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/gifFile> \"" + gif + "\" .");
             return String.join("\n", triplets);
 		}
-		else if (queryType.equals("LdbcUpdate8AddFriendship")) {
-			long person1Id = Long.parseLong(extractWord(arguments, person1IdPattern));
-			long person2Id = Long.parseLong(extractWord(arguments, person2IdPattern));
-			DateFormat format1 = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
-			Date creationDate = format1.parse(extractWord(arguments, creationDatePattern));
+		// Add friendship
+		else if (updateType == 8) {
+			long person1Id = Long.parseLong(parts[3]);
+			long person2Id = Long.parseLong(parts[4]);
+			Date creationDate = new Date(Long.parseLong(parts[5]));
 			String person1Uri = "<http://www.ldbc.eu/ldbc_socialnet/1.0/data/pers" + String.format("%020d", person1Id) + ">";
             String person2Uri = "<http://www.ldbc.eu/ldbc_socialnet/1.0/data/pers" + String.format("%020d", person2Id) + ">";
             DateFormat df1 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'+00:00'");

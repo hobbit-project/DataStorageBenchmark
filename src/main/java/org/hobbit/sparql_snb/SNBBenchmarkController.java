@@ -101,7 +101,7 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 		// Create evaluation storage
 		envVariables = ArrayUtils.add(DEFAULT_EVAL_STORAGE_PARAMETERS,
                 Constants.RABBIT_MQ_HOST_NAME_KEY + "=" + this.rabbitMQHostName);
-		envVariables = ArrayUtils.add(envVariables, "ACKNOWLEDGEMENT_FLAG=true");
+//		envVariables = ArrayUtils.add(envVariables, "ACKNOWLEDGEMENT_FLAG=true");
 		createEvaluationStorage(DEFAULT_EVAL_STORAGE_IMAGE, envVariables);
 		// TODO: get KPIs for evaluation module
 		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_QE_AVERAGE_TIME + "=" + "http://w3id.org/bench#QEAverageTime");
