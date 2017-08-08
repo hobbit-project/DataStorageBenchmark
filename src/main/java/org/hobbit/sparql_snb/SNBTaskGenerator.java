@@ -16,11 +16,14 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.apache.jena.base.Sys;
 import org.hobbit.core.components.AbstractSequencingTaskGenerator;
 import org.hobbit.core.components.AbstractTaskGenerator;
 import org.hobbit.core.rabbit.RabbitMQUtils;
@@ -31,53 +34,18 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SNBTaskGenerator.class);
 	
-	Pattern personIdPattern = Pattern.compile("personId=([^,]+)");
-	Pattern person1IdPattern = Pattern.compile("person1Id=([^,]+)");
-	Pattern person2IdPattern = Pattern.compile("person2Id=([^,]+)");
-	Pattern personFirstNamePattern = Pattern.compile("personFirstName='([^']*)'");
-	Pattern personLastNamePattern = Pattern.compile("personLastName='([^']*)'");
-	Pattern genderPattern = Pattern.compile("gender='([^']+)'");
-	Pattern birthdayPattern = Pattern.compile("birthday=([^,]*)");
-	Pattern locationIpPattern = Pattern.compile("locationIp='([^']+)'");
-	Pattern browserUsedPattern = Pattern.compile("browserUsed='([^']+)'");
-	Pattern cityIdPattern = Pattern.compile("cityId=([^,]*)");
-	Pattern languagesPattern = Pattern.compile("languages=\\[([^\\]]*)\\]");
-	Pattern emailsPattern = Pattern.compile("emails=\\[([^\\]]*)\\]");
-	Pattern tagIdsPattern = Pattern.compile("tagIds=\\[([^\\]]*)\\]");
-	Pattern studyAtPattern = Pattern.compile("studyAt=\\[([^\\]]*)\\]");
-	Pattern workAtPattern = Pattern.compile("workAt=\\[([^\\]]*)\\]");
-	Pattern organizationIdPattern = Pattern.compile("organizationId=([0-9]+)");
-	Pattern yearPattern = Pattern.compile("year=([0-9]+)");
-	Pattern postIdPattern = Pattern.compile("postId=([^,]+)");
-	Pattern commentIdPattern = Pattern.compile("commentId=([^,]+)");
-	Pattern forumIdPattern = Pattern.compile("forumId=([^,]+)");
-	Pattern creationDatePattern = Pattern.compile("creationDate=([^,]+)");
-	Pattern joinDatePattern = Pattern.compile("joinDate=([^,]+)");
-	Pattern forumTitlePattern = Pattern.compile("forumTitle='([^']*)'");
-	Pattern moderatorPersonIdPattern = Pattern.compile("moderatorPersonId=([^,]+)");
-	Pattern imageFilePattern = Pattern.compile("imageFile='([^']*)'");
-	Pattern languagePattern = Pattern.compile("language='([^']*)'");
-	Pattern contentPattern = Pattern.compile("content='([^']*)'");
-	Pattern lengthPattern = Pattern.compile("length=([^,]+)");
-	Pattern authorPersonIdPattern = Pattern.compile("authorPersonId=([^,]+)");
-	Pattern countryIdPattern = Pattern.compile("countryId=([^,]+)");
-	Pattern mentionedIdsPattern = Pattern.compile("mentionedIds=\\[([^\\]]*)\\]");
-	Pattern privacyPattern = Pattern.compile("privacy=([^,]*)");
-	Pattern linkPattern = Pattern.compile("link=([^,]*)");
-	Pattern replyToPostIdPattern = Pattern.compile("replyToPostId=([^,]+)");
-	Pattern replyToCommentIdPattern = Pattern.compile("replyToCommentId=([^,]+)");
-	Pattern gifPattern = Pattern.compile("gif=([^,]*)");
-	
     private HashMap<Long, String> placeMap;
     private HashMap<Long, String> companyMap;
     private HashMap<Long, String> universityMap;
     private HashMap<Long, String> tagMap;
-
+    
+    private long oldRealTime = 0;
+    private long oldSimulatedTime = 0;
 	
-	public SNBTaskGenerator() {
-		
+    public SNBTaskGenerator() {
+    	super(1);
 	}
-	
+    
     @Override
     public void init() throws Exception {
         LOGGER.info("Initialization begins.");
@@ -130,12 +98,33 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
         String dataString = RabbitMQUtils.readString(data);
         
         String [] parts = dataString.split("[|]");
-//        if (taskIdString.endsWith("00"))
-        	LOGGER.info("Curentlly executing task " + taskIdString + " at " + parts[0] + " of type " + parts[2]);
-        
+        LOGGER.info("Generating task " + taskIdString);
         String queryText = prepareUpdateText(dataString);
 //        LOGGER.info(queryText);
         byte[] task = RabbitMQUtils.writeByteArrays(new byte[][] { RabbitMQUtils.writeString(queryText) });
+        
+        // Wait for the right time
+        long newRealTime = System.currentTimeMillis();
+        long newSimulatedTime = Long.parseLong(parts[0]);
+        if (oldRealTime != 0) {
+        	if (newRealTime - oldRealTime < newSimulatedTime - oldSimulatedTime) {
+//        		LOGGER.info("SIMULATED: " + oldSimulatedTime + " - " + newSimulatedTime);
+//        		LOGGER.info("REAL: " + oldRealTime + " - " + newRealTime);
+//        		LOGGER.info("WAITING: " + ((newSimulatedTime - oldSimulatedTime) - (newRealTime - oldRealTime)));
+        		try {
+//        			TimeUnit.MILLISECONDS.sleep((newSimulatedTime - oldSimulatedTime) - (newRealTime - oldRealTime));
+        			Random r = new Random();
+        			TimeUnit.MILLISECONDS.sleep(r.nextInt(4000));
+        		} catch (InterruptedException e) {
+        			// TODO Auto-generated catch block
+        			e.printStackTrace();
+        		}
+        	}
+        }
+    	oldRealTime = newRealTime;
+    	oldSimulatedTime = newSimulatedTime;
+//      if (taskIdString.endsWith("00"))
+      		LOGGER.info("Generated task " + taskIdString + " at " + newSimulatedTime + " - " + newRealTime + " of type " + parts[2]);
         sendTaskToSystemAdapter(taskIdString, task);
 
         data = RabbitMQUtils.writeString(dataString);
