@@ -20,6 +20,7 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 	private ArrayList<String> envVariablesEvaluationModule = new ArrayList<String>();;
 	private int numberOfOperations = -1;
 	private int scaleFactor = -1;
+	private double timeCompressionRatio = -1;
 	private long loadingStarted;
 	private long loadingEnded;
 
@@ -66,6 +67,23 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
             }
         }
         
+        /* Time compression ratio */
+        if (timeCompressionRatio == -1) {
+            iterator = benchmarkParamModel.listObjectsOfProperty(
+                    benchmarkParamModel.getProperty("http://w3id.org/bench#initialTimeCompressionRatio"));
+            if (iterator.hasNext()) {
+                try {
+                    timeCompressionRatio = iterator.next().asLiteral().getDouble();
+                } catch (Exception e) {
+                    LOGGER.error("Exception while parsing parameter.", e);
+                }
+            }
+            if (timeCompressionRatio < 0) {
+                LOGGER.error("Couldn't get the initial time compression ratio from the parameter model. Using the default value.");
+                timeCompressionRatio = 1.0;
+            }
+        }
+        
         /* Scale Factor */
         if (scaleFactor == -1) {
 
@@ -95,7 +113,9 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 
 		// Create task generators
 		int numberOfTaskGenerators = 1;
-		envVariables = null;
+		envVariables = new String[] {
+				SNBConstants.GENERATOR_INITIAL_TIME_COMPRESSION_RATIO + "=" + timeCompressionRatio
+		};
 		createTaskGenerators(TASK_GENERATOR_CONTAINER_IMAGE, numberOfTaskGenerators, envVariables);
 
 		// Create evaluation storage

@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Random;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
@@ -27,6 +28,7 @@ import org.apache.jena.base.Sys;
 import org.hobbit.core.components.AbstractSequencingTaskGenerator;
 import org.hobbit.core.components.AbstractTaskGenerator;
 import org.hobbit.core.rabbit.RabbitMQUtils;
+import org.hobbit.sparql_snb.util.SNBConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +43,8 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
     
     private long oldRealTime = 0;
     private long oldSimulatedTime = 0;
+    
+    private double timeCompressionRatio;
 	
     public SNBTaskGenerator() {
     	super(1);
@@ -60,6 +64,9 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
     	companyMap = readMappings("mappings/companies.txt");
     	universityMap = readMappings("mappings/universities.txt");
     	tagMap = readMappings("mappings/tags.txt");
+    	
+    	Map<String, String> env = System.getenv();
+    	timeCompressionRatio = Double.parseDouble(env.get(SNBConstants.GENERATOR_INITIAL_TIME_COMPRESSION_RATIO));
 	}
 
 	private HashMap<Long, String> readMappings(String path) {
@@ -107,28 +114,32 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
         long newRealTime = System.currentTimeMillis();
         long newSimulatedTime = Long.parseLong(parts[0]);
         if (oldRealTime != 0) {
-        	if (newRealTime - oldRealTime < newSimulatedTime - oldSimulatedTime) {
-//        		LOGGER.info("SIMULATED: " + oldSimulatedTime + " - " + newSimulatedTime);
-//        		LOGGER.info("REAL: " + oldRealTime + " - " + newRealTime);
-//        		LOGGER.info("WAITING: " + ((newSimulatedTime - oldSimulatedTime) - (newRealTime - oldRealTime)));
+        	long waitingTime = (long)((newSimulatedTime - oldSimulatedTime)/timeCompressionRatio - (newRealTime - oldRealTime));
+        	LOGGER.info("WAITING: " + waitingTime);
+        	if (waitingTime > 0) {
         		try {
-//        			TimeUnit.MILLISECONDS.sleep((newSimulatedTime - oldSimulatedTime) - (newRealTime - oldRealTime));
-        			Random r = new Random();
-        			TimeUnit.MILLISECONDS.sleep(r.nextInt(4000));
+        			TimeUnit.MILLISECONDS.sleep(waitingTime);
+//        			Random r = new Random();
+//        			TimeUnit.MILLISECONDS.sleep(r.nextInt(4000));
         		} catch (InterruptedException e) {
         			// TODO Auto-generated catch block
         			e.printStackTrace();
         		}
         	}
         }
-    	oldRealTime = newRealTime;
-    	oldSimulatedTime = newSimulatedTime;
+        
 //      if (taskIdString.endsWith("00"))
-      		LOGGER.info("Generated task " + taskIdString + " at " + newSimulatedTime + " - " + newRealTime + " of type " + parts[2]);
+//      		LOGGER.info("Generated task " + taskIdString + " at " + newSimulatedTime + " - " + newRealTime + " of type " + parts[2]);
+        
         sendTaskToSystemAdapter(taskIdString, task);
 
         data = RabbitMQUtils.writeString(dataString);
         sendTaskToEvalStorage(taskIdString, timestamp, data);
+        
+    	oldRealTime = System.currentTimeMillis();;
+    	oldSimulatedTime = newSimulatedTime;
+
+        LOGGER.info("Generated task " + taskIdString);
 	}
 	
     private String prepareUpdateText(String text) throws Exception {
