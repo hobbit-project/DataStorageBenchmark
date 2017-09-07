@@ -1,6 +1,7 @@
 package org.hobbit.sparql_snb;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
@@ -21,7 +22,7 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 	private int numberOfOperations = -1;
 	private int scaleFactor = -1;
 	private double timeCompressionRatio = -1;
-	private long loadingStarted;
+	private long loadingStarted = -1;
 	private long loadingEnded;
 
 	// TODO: Add image names of containers
@@ -196,7 +197,9 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
     @Override
     public void receiveCommand(byte command, byte[] data) {
     	if (VirtuosoSystemAdapterConstants.BULK_LOAD_DATA_GEN_FINISHED_FROM_DATAGEN == command) {
+    		
     		loadingStarted = System.currentTimeMillis();
+    		
     		try {
         		try {
         			TimeUnit.SECONDS.sleep(2);
@@ -204,7 +207,7 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
         			// TODO Auto-generated catch block
         			e.printStackTrace();
         		}
-				sendToCmdQueue(VirtuosoSystemAdapterConstants.BULK_LOAD_DATA_GEN_FINISHED);
+				sendToCmdQueue(VirtuosoSystemAdapterConstants.BULK_LOAD_DATA_GEN_FINISHED, data);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

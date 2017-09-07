@@ -198,16 +198,20 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
     	//LOGGER.info("received command {}", Commands.toString(command));
     	if (VirtuosoSystemAdapterConstants.BULK_LOAD_DATA_GEN_FINISHED == command) {
     		
-    		LOGGER.info("Bulk phase begins");
-    		
-            for (String uri : this.graphUris) {
-                String create = "CREATE GRAPH " + "<" + uri + ">";
-                UpdateRequest updateRequest = UpdateRequestUtils.parse(create);
-                updateExecFactory.createUpdateProcessor(updateRequest).execute();
-            }
+    		ByteBuffer buffer = ByteBuffer.wrap(data);
+    		int numberOfMessages = buffer.getInt();
+    		boolean lastBulkLoad = buffer.get() != 0;
 
-            loadDataset();
-    		
+    		LOGGER.info("Bulk phase begins");
+
+    		for (String uri : this.graphUris) {
+    			String create = "CREATE GRAPH " + "<" + uri + ">";
+    			UpdateRequest updateRequest = UpdateRequestUtils.parse(create);
+    			updateExecFactory.createUpdateProcessor(updateRequest).execute();
+    		}
+
+    		loadDataset();
+
     		try {
     			String datasetsFolderName = System.getProperty("user.dir") + File.separator + "datasets"; 
     			File theDir = new File(datasetsFolderName);
@@ -216,9 +220,12 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
     		} catch (IOException e) {
     			e.printStackTrace();
     		}
-    		
-            phase2 = false;
+
+    		phase2 = false;
     		LOGGER.info("Bulk phase is over.");
+    		
+    		if (lastBulkLoad)
+    			phase2 = false;
     	}
     	super.receiveCommand(command, data);
     }
