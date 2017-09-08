@@ -99,7 +99,7 @@ public class SNBDataGenerator extends AbstractDataGenerator {
     		}
     		
 			ByteBuffer buffer = ByteBuffer.allocate(5);
-			buffer.putInt(1);
+			buffer.putInt(files.length);
 			buffer.put((byte) 1);
     		sendToCmdQueue(VirtuosoSystemAdapterConstants.BULK_LOAD_DATA_GEN_FINISHED_FROM_DATAGEN, buffer.array());
     	} catch (IOException e) {

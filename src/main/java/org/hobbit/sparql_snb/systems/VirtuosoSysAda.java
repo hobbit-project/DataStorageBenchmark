@@ -221,7 +221,6 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
     			e.printStackTrace();
     		}
 
-    		phase2 = false;
     		LOGGER.info("Bulk phase is over.");
     		
     		if (lastBulkLoad)
