@@ -10,13 +10,14 @@ import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.aksw.jena_sparql_api.core.QueryExecutionFactory;
 import org.aksw.jena_sparql_api.core.UpdateExecutionFactory;
 import org.aksw.jena_sparql_api.core.UpdateExecutionFactoryHttp;
 import org.aksw.jena_sparql_api.core.utils.UpdateRequestUtils;
 import org.aksw.jena_sparql_api.http.QueryExecutionFactoryHttp;
-import org.aksw.jena_sparql_api.pagination.core.QueryExecutionFactoryPaginated;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetFormatter;
@@ -26,7 +27,6 @@ import org.hobbit.sparql_snb.util.VirtuosoSystemAdapterConstants;
 import org.hobbit.core.rabbit.RabbitMQUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.commons.io.FileUtils;
 import org.apache.jena.atlas.web.auth.HttpAuthenticator;
 import org.apache.jena.atlas.web.auth.SimpleAuthenticator;
 
@@ -45,6 +45,12 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
     private int selectsProcessed = 0;
     
     private int counter = 0;
+    
+	private AtomicInteger totalReceived = new AtomicInteger(0);
+	private AtomicInteger totalSent = new AtomicInteger(0);
+	private Semaphore allDataReceivedMutex = new Semaphore(0);
+	
+	private int loadingNumber = 0;
     
 	public VirtuosoSysAda(int numberOfMessagesInParallel) {
 		super(numberOfMessagesInParallel);
@@ -81,6 +87,10 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 					e.printStackTrace();
 				}
 			}
+			
+			if(totalReceived.incrementAndGet() == totalSent.get()) {
+				allDataReceivedMutex.release();
+			}
 		}
 		else {			
             this.insertsReceived++;
@@ -104,7 +114,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 	public void receiveGeneratedTask(String taskId, byte[] data) {
 		ByteBuffer buffer = ByteBuffer.wrap(data);
 		String queryString = RabbitMQUtils.readString(buffer);
-//		LOGGER.info(queryString);
+
 		if (queryString.contains("INSERT DATA")) {
 			
 			//TODO: Virtuoso hack
@@ -166,6 +176,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 			}
 			this.selectsProcessed++;
 		}
+		LOGGER.info(taskId);
 	}
 	
     @Override
@@ -196,27 +207,51 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
     	//LOGGER.info("received command {}", Commands.toString(command));
     	if (VirtuosoSystemAdapterConstants.BULK_LOAD_DATA_GEN_FINISHED == command) {
     		
-    		LOGGER.info("Bulk phase begins");
-    		
-            for (String uri : this.graphUris) {
-                String create = "CREATE GRAPH " + "<" + uri + ">";
-                UpdateRequest updateRequest = UpdateRequestUtils.parse(create);
-                updateExecFactory.createUpdateProcessor(updateRequest).execute();
-            }
+    		ByteBuffer buffer = ByteBuffer.wrap(data);
+    		int numberOfMessages = buffer.getInt();
+    		boolean lastBulkLoad = buffer.get() != 0;
 
-            loadDataset();
+    		LOGGER.info("Bulk loading phase (" + loadingNumber + ") begins");
     		
+    		// if all data have been received before BULK_LOAD_DATA_GEN_FINISHED command received
+   			// release before acquire, so it can immediately proceed to bulk loading
+   			if(totalReceived.get() == totalSent.addAndGet(numberOfMessages)) {
+				allDataReceivedMutex.release();
+   			}
+    		
+			LOGGER.info("Wait for receiving all data for bulk load " + loadingNumber + ".");
+			try {
+				allDataReceivedMutex.acquire();
+			} catch (InterruptedException e) {
+				LOGGER.error("Exception while waitting for all data for bulk load " + loadingNumber + " to be recieved.", e);
+			}
+			LOGGER.info("All data for bulk load " + loadingNumber + " received. Proceed to the loading...");
+			
+    		for (String uri : this.graphUris) {
+    			String create = "CREATE GRAPH " + "<" + uri + ">";
+    			UpdateRequest updateRequest = UpdateRequestUtils.parse(create);
+    			updateExecFactory.createUpdateProcessor(updateRequest).execute();
+    		}
+
+    		loadDataset();
+
     		try {
     			String datasetsFolderName = System.getProperty("user.dir") + File.separator + "datasets"; 
     			File theDir = new File(datasetsFolderName);
-    			FileUtils.deleteDirectory(theDir);
+    			for (File f : theDir.listFiles())
+    				f.delete();
+    			//FileUtils.deleteDirectory(theDir);
     			sendToCmdQueue(VirtuosoSystemAdapterConstants.BULK_LOADING_DATA_FINISHED);
     		} catch (IOException e) {
     			e.printStackTrace();
     		}
-    		
-            phase2 = false;
+
     		LOGGER.info("Bulk phase is over.");
+    		
+    		loadingNumber++;
+    		
+    		if (lastBulkLoad)
+    			phase2 = false;
     	}
     	super.receiveCommand(command, data);
     }
@@ -255,6 +290,12 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
     		updateExecFactory.close();
     	} catch (Exception e) {
     	}
+//		try {
+//			TimeUnit.SECONDS.sleep(10);
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
     	super.close();
     	LOGGER.info("Virtuoso has stopped.");
     }

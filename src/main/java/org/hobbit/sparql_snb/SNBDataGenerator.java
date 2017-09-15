@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
 
@@ -97,7 +98,12 @@ public class SNBDataGenerator extends AbstractDataGenerator {
     			
     			LOGGER.info("File " + remoteFile + " has been downloaded successfully and sent.");
     		}
-    		sendToCmdQueue(VirtuosoSystemAdapterConstants.BULK_LOAD_DATA_GEN_FINISHED_FROM_DATAGEN);
+    		
+    		ByteBuffer buffer = ByteBuffer.allocate(5);
+			buffer.putInt(files.length);
+			buffer.put((byte) 1);
+			
+    		sendToCmdQueue(VirtuosoSystemAdapterConstants.BULK_LOAD_DATA_GEN_FINISHED_FROM_DATAGEN, buffer.array());
     	} catch (IOException e) {
     		// TODO Auto-generated catch block
     		e.printStackTrace();

@@ -184,7 +184,7 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
         			// TODO Auto-generated catch block
         			e.printStackTrace();
         		}
-				sendToCmdQueue(VirtuosoSystemAdapterConstants.BULK_LOAD_DATA_GEN_FINISHED);
+				sendToCmdQueue(VirtuosoSystemAdapterConstants.BULK_LOAD_DATA_GEN_FINISHED, data);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
