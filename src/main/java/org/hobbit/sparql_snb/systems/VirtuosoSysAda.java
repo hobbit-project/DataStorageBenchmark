@@ -10,7 +10,9 @@ import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.aksw.jena_sparql_api.core.QueryExecutionFactory;
 import org.aksw.jena_sparql_api.core.UpdateExecutionFactory;
@@ -47,6 +49,12 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
     
     private int counter = 0;
     
+	private AtomicInteger totalReceived = new AtomicInteger(0);
+	private AtomicInteger totalSent = new AtomicInteger(0);
+	private Semaphore allDataReceivedMutex = new Semaphore(0);
+	
+	private int loadingNumber = 0;
+    
 	public VirtuosoSysAda(int numberOfMessagesInParallel) {
 		super(numberOfMessagesInParallel);
 	}
@@ -81,6 +89,10 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+			}
+			
+			if(totalReceived.incrementAndGet() == totalSent.get()) {
+				allDataReceivedMutex.release();
 			}
 		}
 		else {			
@@ -202,8 +214,22 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
     		int numberOfMessages = buffer.getInt();
     		boolean lastBulkLoad = buffer.get() != 0;
 
-    		LOGGER.info("Bulk phase begins");
-
+    		LOGGER.info("Bulk loading phase (" + loadingNumber + ") begins");
+    		
+    		// if all data have been received before BULK_LOAD_DATA_GEN_FINISHED command received
+   			// release before acquire, so it can immediately proceed to bulk loading
+   			if(totalReceived.get() == totalSent.addAndGet(numberOfMessages)) {
+				allDataReceivedMutex.release();
+   			}
+    		
+			LOGGER.info("Wait for receiving all data for bulk load " + loadingNumber + ".");
+			try {
+				allDataReceivedMutex.acquire();
+			} catch (InterruptedException e) {
+				LOGGER.error("Exception while waitting for all data for bulk load " + loadingNumber + " to be recieved.", e);
+			}
+			LOGGER.info("All data for bulk load " + loadingNumber + " received. Proceed to the loading...");
+			
     		for (String uri : this.graphUris) {
     			String create = "CREATE GRAPH " + "<" + uri + ">";
     			UpdateRequest updateRequest = UpdateRequestUtils.parse(create);
@@ -215,13 +241,17 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
     		try {
     			String datasetsFolderName = System.getProperty("user.dir") + File.separator + "datasets"; 
     			File theDir = new File(datasetsFolderName);
-    			FileUtils.deleteDirectory(theDir);
+    			for (File f : theDir.listFiles())
+    				f.delete();
+    			//FileUtils.deleteDirectory(theDir);
     			sendToCmdQueue(VirtuosoSystemAdapterConstants.BULK_LOADING_DATA_FINISHED);
     		} catch (IOException e) {
     			e.printStackTrace();
     		}
 
     		LOGGER.info("Bulk phase is over.");
+    		
+    		loadingNumber++;
     		
     		if (lastBulkLoad)
     			phase2 = false;
