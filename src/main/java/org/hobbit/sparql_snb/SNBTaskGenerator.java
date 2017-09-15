@@ -1,31 +1,21 @@
 package org.hobbit.sparql_snb;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Random;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
-import org.apache.jena.base.Sys;
-import org.hobbit.core.components.AbstractSequencingTaskGenerator;
 import org.hobbit.core.components.AbstractTaskGenerator;
 import org.hobbit.core.rabbit.RabbitMQUtils;
 import org.hobbit.sparql_snb.util.SNBConstants;
@@ -210,8 +200,6 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
 	}
 
 	private String prepareTriplets(String [] parts) throws UnsupportedEncodingException {
-    	long unixTime = Long.parseLong(parts[0]);
-    	//TODO: Ignoring parts[1]
     	int updateType = Integer.parseInt(parts[2]);
     	// Add person
 		if (updateType == 1) {
@@ -511,40 +499,6 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
 
 	private String placeUri(long long1) {
 		return placeMap.get(long1);
-	}
-
-	private String extractWord(String arguments, Pattern p) {
-		Matcher m = p.matcher(arguments);
-		m.find();
-		return m.group(1);
-	}
-
-	private String file2string(File file) throws Exception {
-		BufferedReader reader = null;
-		try {
-			reader = new BufferedReader(new FileReader(file));
-			StringBuffer sb = new StringBuffer();
-
-			while (true) {
-				String line = reader.readLine();
-				if (line == null)
-					break;
-				else {
-					sb.append(line);
-					sb.append("\n");
-				}
-			}
-			return sb.toString();
-		} catch (IOException e) {
-			throw new Exception("Error openening or reading file: " + file.getAbsolutePath(), e);
-		} finally {
-			try {
-				if (reader != null)
-					reader.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
 	}
 
 }

@@ -1,7 +1,6 @@
 package org.hobbit.sparql_snb;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
