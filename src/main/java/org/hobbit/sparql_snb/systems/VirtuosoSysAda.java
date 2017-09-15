@@ -37,7 +37,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 	private QueryExecutionFactory queryExecFactory;
 	private UpdateExecutionFactory updateExecFactory;
 
-	private boolean phase2 = true;
+	private boolean dataLoadingFinished = false;
 	SortedSet<String> graphUris = new TreeSet<String>(); 
 
 	private int counter = 0;
@@ -58,7 +58,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 
 	@Override
 	public void receiveGeneratedData(byte[] arg0) {
-		if (phase2 == true) {
+		if (dataLoadingFinished == false) {
 			ByteBuffer dataBuffer = ByteBuffer.wrap(arg0);    	
 			String fileName = RabbitMQUtils.readString(dataBuffer);
 			
@@ -233,7 +233,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 			loadingNumber++;
 
 			if (lastBulkLoad)
-				phase2 = false;
+				dataLoadingFinished = true;
 		}
 		super.receiveCommand(command, data);
 	}
