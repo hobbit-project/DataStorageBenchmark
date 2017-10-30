@@ -5,6 +5,9 @@ public final class SNBConstants {
 	public static final String GENERATOR_NUMBER_OF_OPERATIONS = "generator_number_of_operations";
 	public static final String GENERATOR_SCALE_FACTOR = "generator_scale_factor";
 	public static final String GENERATOR_INITIAL_TIME_COMPRESSION_RATIO = "generator_initial_time_compression_ratio";
+	public static final String GENERATOR_SEED = "generator_seed";
+	
+	public static final String GENERATOR_Q02_FREQUENCY = "generator_q02_frequency";
 	
 	public static final String EVALUATION_QE_AVERAGE_TIME = "evaluation_query_execution_average_time";
 	

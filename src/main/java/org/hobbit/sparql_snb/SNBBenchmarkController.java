@@ -20,17 +20,19 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 	private ArrayList<String> envVariablesEvaluationModule = new ArrayList<String>();;
 	private int numberOfOperations = -1;
 	private int scaleFactor = -1;
+	private int seed = -1;
+	private int [] frequency;
 	private double timeCompressionRatio = -1;
 	private long loadingStarted = -1;
 	private long loadingEnded;
 
 	// TODO: Add image names of containers
 	/* Data generator Docker image */
-	private static final String DATA_GENERATOR_CONTAINER_IMAGE = "git.project-hobbit.eu:4567/mspasic/sparql-snbdatagenerator";
+	private static final String DATA_GENERATOR_CONTAINER_IMAGE = "git.project-hobbit.eu:4567/mspasic/dsb-datagenerator";
 	/* Task generator Docker image */
-	private static final String TASK_GENERATOR_CONTAINER_IMAGE = "git.project-hobbit.eu:4567/mspasic/sparql-snbtaskgenerator";
+	private static final String TASK_GENERATOR_CONTAINER_IMAGE = "git.project-hobbit.eu:4567/mspasic/dsb-taskgenerator";
 	/* Evaluation module Docker image */
-	private static final String EVALUATION_MODULE_CONTAINER_IMAGE = "git.project-hobbit.eu:4567/mspasic/sparql-snbevaluationmodule";
+	private static final String EVALUATION_MODULE_CONTAINER_IMAGE = "git.project-hobbit.eu:4567/mspasic/dsb-evaluationmodule";
 
 	public SNBBenchmarkController() {
 
@@ -102,6 +104,35 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
                 scaleFactor = 1;
             }
         }
+        
+        /* Seed */
+        if (seed == -1) {
+
+            iterator = benchmarkParamModel.listObjectsOfProperty(
+                    benchmarkParamModel.getProperty("http://w3id.org/bench#hasSeed"));
+            if (iterator.hasNext()) {
+                try {
+                    seed = iterator.next().asLiteral().getInt();
+                } catch (Exception e) {
+                    LOGGER.error("Exception while parsing parameter.", e);
+                }
+            }
+        }
+        
+        /* Frequencies */
+        frequency = new int[15];
+        iterator = benchmarkParamModel.listObjectsOfProperty(
+                benchmarkParamModel.getProperty("http://w3id.org/bench#hasQ2frequency"));
+        if (iterator.hasNext()) {
+            try {
+            	frequency[2] = iterator.next().asLiteral().getInt();
+            } catch (Exception e) {
+                LOGGER.error("Exception while parsing parameter.", e);
+            }
+        }
+        if (frequency[2] <= 0) {
+            LOGGER.error("Query 2 disabled");
+        }
 
 		// Create data generators
 		int numberOfDataGenerators = 1;
@@ -114,6 +145,9 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 		// Create task generators
 		int numberOfTaskGenerators = 1;
 		envVariables = new String[] {
+				SNBConstants.GENERATOR_SCALE_FACTOR + "=" + scaleFactor,
+				SNBConstants.GENERATOR_SEED + "=" + seed,
+				SNBConstants.GENERATOR_Q02_FREQUENCY + "=" + frequency[2],
 				SNBConstants.GENERATOR_INITIAL_TIME_COMPRESSION_RATIO + "=" + timeCompressionRatio
 		};
 		createTaskGenerators(TASK_GENERATOR_CONTAINER_IMAGE, numberOfTaskGenerators, envVariables);

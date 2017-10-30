@@ -1,10 +1,15 @@
 package org.hobbit.sparql_snb;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -13,9 +18,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.jena.iri.impl.Force;
 import org.hobbit.core.components.AbstractTaskGenerator;
 import org.hobbit.core.rabbit.RabbitMQUtils;
 import org.hobbit.sparql_snb.util.SNBConstants;
@@ -30,11 +38,19 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
     private HashMap<Long, String> companyMap;
     private HashMap<Long, String> universityMap;
     private HashMap<Long, String> tagMap;
+    private int scaleFactor;
+    private int seed;
     
     private long oldRealTime = 0;
     private long oldSimulatedTime = 0;
     
     private double timeCompressionRatio;
+    
+    String [][] params;
+    Random [] rndms;
+    int [] frequency;
+    
+    long numberOfUpdates = 0;
 	
     public SNBTaskGenerator() {
     	super(1);
@@ -57,6 +73,33 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
     	
     	Map<String, String> env = System.getenv();
     	timeCompressionRatio = Double.parseDouble(env.get(SNBConstants.GENERATOR_INITIAL_TIME_COMPRESSION_RATIO));
+    	
+    	scaleFactor = Integer.parseInt(env.get(SNBConstants.GENERATOR_SCALE_FACTOR));
+    	seed = Integer.parseInt(env.get(SNBConstants.GENERATOR_SEED));
+    	
+    	// reading query parameters
+    	String directory = "http://hobbitdata.informatik.uni-leipzig.de/MOCHA_OC/T2/sf" + scaleFactor + "/substitution_parameters/";
+    	params = new String[15][];
+    	for (int i = 1; i <= 14; i++) {
+	    	String paramFile = directory + "query_" + String.valueOf(i) + "_param.txt";
+			try {
+				InputStream inputStream = new URL(paramFile).openStream();
+				String fileContent = IOUtils.toString(inputStream);
+				params[i] = fileContent.replaceFirst(".*\n", ""). split("\n");
+				inputStream.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    	}
+    	
+    	rndms = new Random[15];
+        for (int i = 1; i <= 14; i++) {
+        	rndms[i] = new Random(seed + i);
+        }
+        
+        frequency = new int[15];
+        frequency[2] = Integer.parseInt(env.get(SNBConstants.GENERATOR_Q02_FREQUENCY));
 	}
 
 	private HashMap<Long, String> readMappings(String path) {
@@ -94,9 +137,9 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
         String dataString = RabbitMQUtils.readString(data);
         
         String [] parts = dataString.split("[|]");
-        LOGGER.info("Generating task " + taskIdString);
+        if (taskIdString.endsWith("000"))
+        	LOGGER.info("Generating task " + taskIdString);
         String queryText = prepareUpdateText(dataString);
-//        LOGGER.info(queryText);
         byte[] task = RabbitMQUtils.writeByteArrays(new byte[][] { RabbitMQUtils.writeString(queryText) });
         
         // Wait for the right time
@@ -104,7 +147,6 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
         long newSimulatedTime = Long.parseLong(parts[0]);
         if (oldRealTime != 0) {
         	long waitingTime = (long)((newSimulatedTime - oldSimulatedTime)/timeCompressionRatio - (newRealTime - oldRealTime));
-        	LOGGER.info("WAITING: " + waitingTime);
         	if (waitingTime > 0) {
         		try {
         			TimeUnit.MILLISECONDS.sleep(waitingTime);
@@ -128,61 +170,24 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
         
     	oldRealTime = System.currentTimeMillis();;
     	oldSimulatedTime = newSimulatedTime;
+    	
+    	numberOfUpdates++;
+    	
+    	if (frequency[2] > 0 && numberOfUpdates % frequency[2] == 0) {
+    		taskIdString = getNextTaskId();
+			String queryString = prepareQueryText(2, params[2][rndms[2].nextInt(params[2].length)]);
+			task = RabbitMQUtils.writeByteArrays(new byte[][] { RabbitMQUtils.writeString(queryString) });
+			timestamp = System.currentTimeMillis();
+			sendTaskToSystemAdapter(taskIdString, task);
+			LOGGER.info(queryString);
+			
+			data = RabbitMQUtils.writeString("TODO");
+			sendTaskToEvalStorage(taskIdString, timestamp, data);
+    	}
 
-        LOGGER.info("Generated task " + taskIdString);
 	}
 	
     private String prepareUpdateText(String text) throws Exception {
-//    	String [] parts = text.split("[{]", 2);
-//    	String queryType = parts[0];
-//    	String [] arguments = parts[1].substring(0, parts[1].length()-1).split(", ");
-//    	String queryString = preparePrefixes();
-//    	if (queryType.startsWith("LdbcUpdate")) {
-//    		queryString += "INSERT DATA { GRAPH <https://github.com/hobbit-project/sparql-snb> {\n" + prepareTriplets(queryType, parts[1].substring(0, parts[1].length()-1)) + "\n}\n}\n";
-//    	}
-//    	else {
-//    		if (queryType.startsWith("LdbcQuery")) {
-//    			queryString += file2string(new File("snb_queries", "query" + queryType.replaceAll("[^0-9]*", "") + ".txt"));
-//    		}
-//    		else {
-//    			queryString += file2string(new File("snb_queries", "s" + queryType.replaceAll("[^0-9]*", "") + ".txt"));
-//    		}
-//    		for (String arg : arguments) {
-//    			String [] tmp = arg.split("=");
-//    			switch (tmp[0]) {
-//    			case "personId":
-//    				if (queryType.startsWith("LdbcQuery"))
-//    					queryString = queryString.replaceAll("%" + tmp[0] + "%", String.format("%020d", Long.parseLong(tmp[1])));
-//    				else
-//    					queryString = queryString.replaceAll("%" + tmp[0] + "%", tmp[1]);
-//    				break;
-//    			case "maxDate":
-//    			case "minDate":
-//    			case "startDate":
-//    				DateFormat format1 = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
-//    				Date date = format1.parse(tmp[1]);
-//    				DateFormat format2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'+00:00'");
-//    				queryString = queryString.replaceAll("%" + tmp[0] + "%", format2.format(date));
-//    				break;
-//    			case "month":
-//    				queryString = queryString.replaceAll("%month1%", tmp[1]);
-//    				int nextMonth = Integer.parseInt(tmp[1]) + 1;
-//    				if (nextMonth == 13)
-//    					nextMonth = 1;
-//    				queryString = queryString.replaceAll("%month2%", String.valueOf(nextMonth));
-//    				break;
-//    			case "countryXName":
-//    			case "countryYName":
-//    			case "tagClassName":
-//    				queryString = queryString.replaceAll("%" + tmp[0] + "%", tmp[1].substring(1, tmp[1].length()-1));
-//    				break;
-//    			default:
-//    				queryString = queryString.replaceAll("%" + tmp[0] + "%", tmp[1]);
-//    				break;
-//    			}
-//    		}
-//    	}
-    	
     	String [] parts = text.split("[|]", -1);
     	String queryString = "#U" + Integer.parseInt(parts[2]) + "\n" + preparePrefixes();
     	queryString += "INSERT DATA { GRAPH <https://github.com/hobbit-project/sparql-snb> { \n" + prepareTriplets(parts) + "\n}\n}\n";
@@ -483,6 +488,30 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
 		}
 		return "";
 	}
+	
+    private String prepareQueryText(int queryType, String text) {
+    	String [] arguments = text.split("[|]");
+    	
+    	String queryString = preparePrefixes();;
+    	try {
+			queryString += new String(Files.readAllBytes(Paths.get("snb_queries/query" + String.valueOf(queryType) + ".txt")));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'+00:00'");
+		sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
+    	
+    	switch (queryType) {
+		case 2:
+			queryString = queryString.replaceAll("%personId%", String.format("%020d", Long.parseLong(arguments[0])));
+			queryString = queryString.replaceAll("%maxDate%", sdf.format(new Date(Long.parseLong(arguments[1]))));
+			queryString = queryString.replaceAll("%limit%", "20");
+			break;
+		}
+		return queryString;
+    }
 
 
 	private String companyUri(long long1) {

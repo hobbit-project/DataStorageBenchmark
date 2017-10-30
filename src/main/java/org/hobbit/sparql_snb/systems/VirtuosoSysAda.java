@@ -109,7 +109,6 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 		String queryString = RabbitMQUtils.readString(buffer);
 
 		if (queryString.contains("INSERT DATA")) {
-
 			//TODO: Virtuoso hack
 			queryString = queryString.replaceFirst("INSERT DATA", "INSERT");
 			queryString += "WHERE { }\n";
