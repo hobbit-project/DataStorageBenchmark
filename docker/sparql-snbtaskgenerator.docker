@@ -4,6 +4,7 @@ ADD target/DataStorageBenchmark-1.0.0-SNAPSHOT.jar /sparql-snb/DataStorageBenchm
 
 COPY src/main/resources/snb_queries /sparql-snb/snb_queries
 COPY src/main/resources/mappings /sparql-snb/mappings
+COPY src/main/resources/workload /sparql-snb/workload
 
 WORKDIR /sparql-snb
 
