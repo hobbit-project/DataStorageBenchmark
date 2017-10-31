@@ -7,7 +7,20 @@ public final class SNBConstants {
 	public static final String GENERATOR_INITIAL_TIME_COMPRESSION_RATIO = "generator_initial_time_compression_ratio";
 	public static final String GENERATOR_SEED = "generator_seed";
 	
+	public static final String GENERATOR_Q01_FREQUENCY = "generator_q01_frequency";
 	public static final String GENERATOR_Q02_FREQUENCY = "generator_q02_frequency";
+	public static final String GENERATOR_Q03_FREQUENCY = "generator_q03_frequency";
+	public static final String GENERATOR_Q04_FREQUENCY = "generator_q04_frequency";
+	public static final String GENERATOR_Q05_FREQUENCY = "generator_q05_frequency";
+	public static final String GENERATOR_Q06_FREQUENCY = "generator_q06_frequency";
+	public static final String GENERATOR_Q07_FREQUENCY = "generator_q07_frequency";
+	public static final String GENERATOR_Q08_FREQUENCY = "generator_q08_frequency";
+	public static final String GENERATOR_Q09_FREQUENCY = "generator_q09_frequency";
+	public static final String GENERATOR_Q10_FREQUENCY = "generator_q10_frequency";
+	public static final String GENERATOR_Q11_FREQUENCY = "generator_q11_frequency";
+	public static final String GENERATOR_Q12_FREQUENCY = "generator_q12_frequency";
+	public static final String GENERATOR_Q13_FREQUENCY = "generator_q13_frequency";
+	public static final String GENERATOR_Q14_FREQUENCY = "generator_q14_frequency";
 	
 	public static final String EVALUATION_QE_AVERAGE_TIME = "evaluation_query_execution_average_time";
 	

@@ -107,7 +107,20 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
         }
         
         frequency = new int[15];
+        frequency[1] = Integer.parseInt(env.get(SNBConstants.GENERATOR_Q01_FREQUENCY));
         frequency[2] = Integer.parseInt(env.get(SNBConstants.GENERATOR_Q02_FREQUENCY));
+        frequency[3] = Integer.parseInt(env.get(SNBConstants.GENERATOR_Q03_FREQUENCY));
+        frequency[4] = Integer.parseInt(env.get(SNBConstants.GENERATOR_Q04_FREQUENCY));
+        frequency[5] = Integer.parseInt(env.get(SNBConstants.GENERATOR_Q05_FREQUENCY));
+        frequency[6] = Integer.parseInt(env.get(SNBConstants.GENERATOR_Q06_FREQUENCY));
+        frequency[7] = Integer.parseInt(env.get(SNBConstants.GENERATOR_Q07_FREQUENCY));
+        frequency[8] = Integer.parseInt(env.get(SNBConstants.GENERATOR_Q08_FREQUENCY));
+        frequency[9] = Integer.parseInt(env.get(SNBConstants.GENERATOR_Q09_FREQUENCY));
+        frequency[10] = Integer.parseInt(env.get(SNBConstants.GENERATOR_Q10_FREQUENCY));
+        frequency[11] = Integer.parseInt(env.get(SNBConstants.GENERATOR_Q11_FREQUENCY));
+        frequency[12] = Integer.parseInt(env.get(SNBConstants.GENERATOR_Q12_FREQUENCY));
+        frequency[13] = Integer.parseInt(env.get(SNBConstants.GENERATOR_Q13_FREQUENCY));
+        frequency[14] = Integer.parseInt(env.get(SNBConstants.GENERATOR_Q14_FREQUENCY));
 	}
 
 	private HashMap<Long, String> readMappings(String path) {
@@ -183,16 +196,17 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
     	
     	numberOfUpdates++;
     	
-    	if (frequency[2] > 0 && numberOfUpdates % frequency[2] == 0) {
-    		taskIdString = getNextTaskId();
-			String queryString = prepareQueryText(2, params[2][rndms[2].nextInt(params[2].length)]);
-			task = RabbitMQUtils.writeByteArrays(new byte[][] { RabbitMQUtils.writeString(queryString) });
-			timestamp = System.currentTimeMillis();
-			sendTaskToSystemAdapter(taskIdString, task);
-			LOGGER.info(queryString);
-			
-			data = RabbitMQUtils.writeString(queryString + "\n\nTODO");
-			sendTaskToEvalStorage(taskIdString, timestamp, data);
+    	for (int i = 1; i <= 14; i++) {
+	    	if (frequency[i] > 0 && numberOfUpdates % frequency[i] == 0) {
+	    		taskIdString = getNextTaskId();
+				String queryString = prepareQueryText(i, params[i][rndms[i].nextInt(params[i].length)]);
+				task = RabbitMQUtils.writeByteArrays(new byte[][] { RabbitMQUtils.writeString(queryString) });
+				timestamp = System.currentTimeMillis();
+				sendTaskToSystemAdapter(taskIdString, task);
+				
+				data = RabbitMQUtils.writeString(queryString + "\n\nTODO");
+				sendTaskToEvalStorage(taskIdString, timestamp, data);
+	    	}
     	}
 
 	}
@@ -514,7 +528,79 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
 		sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
     	
     	switch (queryType) {
+		case 1:
+			queryString = queryString.replaceAll("%personId%", String.format("%020d", Long.parseLong(arguments[0])));
+			queryString = queryString.replaceAll("%firstName%", arguments[1]);
+			queryString = queryString.replaceAll("%limit%", "20");
+			break;
 		case 2:
+			queryString = queryString.replaceAll("%personId%", String.format("%020d", Long.parseLong(arguments[0])));
+			queryString = queryString.replaceAll("%maxDate%", sdf.format(new Date(Long.parseLong(arguments[1]))));
+			queryString = queryString.replaceAll("%limit%", "20");
+			break;
+		case 3:
+			queryString = queryString.replaceAll("%personId%", String.format("%020d", Long.parseLong(arguments[0])));
+			queryString = queryString.replaceAll("%startDate%", sdf.format(new Date(Long.parseLong(arguments[1]))));
+			queryString = queryString.replaceAll("%durationDays%", arguments[2]);
+			queryString = queryString.replaceAll("%countryXName%", arguments[3]);
+			queryString = queryString.replaceAll("%countryYName%", arguments[4]);
+			queryString = queryString.replaceAll("%limit%", "20");
+			break;
+		case 4:
+			queryString = queryString.replaceAll("%personId%", String.format("%020d", Long.parseLong(arguments[0])));
+			queryString = queryString.replaceAll("%startDate%", sdf.format(new Date(Long.parseLong(arguments[1]))));
+			queryString = queryString.replaceAll("%durationDays%", arguments[2]);
+			queryString = queryString.replaceAll("%limit%", "10");
+			break;
+		case 5:
+			queryString = queryString.replaceAll("%personId%", String.format("%020d", Long.parseLong(arguments[0])));
+			queryString = queryString.replaceAll("%minDate%", sdf.format(new Date(Long.parseLong(arguments[1]))));
+			queryString = queryString.replaceAll("%limit%", "20");
+			break;
+		case 6:
+			queryString = queryString.replaceAll("%personId%", String.format("%020d", Long.parseLong(arguments[0])));
+			queryString = queryString.replaceAll("%tagName%", "'" + arguments[1] + "'");
+			queryString = queryString.replaceAll("%limit%", "10");
+			break;
+		case 7:
+			queryString = queryString.replaceAll("%personId%", String.format("%020d", Long.parseLong(arguments[0])));
+			queryString = queryString.replaceAll("%limit%", "20");
+			break;
+		case 8:
+			queryString = queryString.replaceAll("%personId%", String.format("%020d", Long.parseLong(arguments[0])));
+			queryString = queryString.replaceAll("%limit%", "20");
+			break;
+		case 9:
+			queryString = queryString.replaceAll("%personId%", String.format("%020d", Long.parseLong(arguments[0])));
+			queryString = queryString.replaceAll("%maxDate%", sdf.format(new Date(Long.parseLong(arguments[1]))));
+			queryString = queryString.replaceAll("%limit%", "20");
+			break;
+		case 10:
+			queryString = queryString.replaceAll("%personId%", String.format("%020d", Long.parseLong(arguments[0])));
+			queryString = queryString.replaceAll("%month1%", arguments[1]);
+			int nextMonth = Integer.parseInt(arguments[1]) + 1;
+			if (nextMonth == 13)
+				nextMonth = 1;
+			queryString = queryString.replaceAll("%month2%", String.valueOf(nextMonth));
+			queryString = queryString.replaceAll("%limit%", "10");
+			break;
+		case 11:
+			queryString = queryString.replaceAll("%personId%", String.format("%020d", Long.parseLong(arguments[0])));
+			queryString = queryString.replaceAll("%countryName%", "'" + arguments[1] + "'");
+			queryString = queryString.replaceAll("%workFromYear%", arguments[2]);
+			queryString = queryString.replaceAll("%limit%", "10");
+			break;
+		case 12:
+			queryString = queryString.replaceAll("%personId%", String.format("%020d", Long.parseLong(arguments[0])));
+			queryString = queryString.replaceAll("%tagClassName%", arguments[1]);
+			queryString = queryString.replaceAll("%limit%", "20");
+			break;
+		case 13:
+			queryString = queryString.replaceAll("%personId%", String.format("%020d", Long.parseLong(arguments[0])));
+			queryString = queryString.replaceAll("%maxDate%", sdf.format(new Date(Long.parseLong(arguments[1]))));
+			queryString = queryString.replaceAll("%limit%", "20");
+			break;
+		case 14:
 			queryString = queryString.replaceAll("%personId%", String.format("%020d", Long.parseLong(arguments[0])));
 			queryString = queryString.replaceAll("%maxDate%", sdf.format(new Date(Long.parseLong(arguments[1]))));
 			queryString = queryString.replaceAll("%limit%", "20");
