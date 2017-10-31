@@ -91,20 +91,20 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
     }
     
 	private void internalInit() {
-		totalTimePerQueryType.put("LdbcQuery1", (long) 0);
-		totalTimePerQueryType.put("LdbcQuery2", (long) 0);
-		totalTimePerQueryType.put("LdbcQuery3", (long) 0);
-		totalTimePerQueryType.put("LdbcQuery4", (long) 0);
-		totalTimePerQueryType.put("LdbcQuery5", (long) 0);
-		totalTimePerQueryType.put("LdbcQuery6", (long) 0);
-		totalTimePerQueryType.put("LdbcQuery7", (long) 0);
-		totalTimePerQueryType.put("LdbcQuery8", (long) 0);
-		totalTimePerQueryType.put("LdbcQuery9", (long) 0);
-		totalTimePerQueryType.put("LdbcQuery10", (long) 0);
-		totalTimePerQueryType.put("LdbcQuery11", (long) 0);
-		totalTimePerQueryType.put("LdbcQuery12", (long) 0);
-		totalTimePerQueryType.put("LdbcQuery13", (long) 0);
-		totalTimePerQueryType.put("LdbcQuery14", (long) 0);
+		totalTimePerQueryType.put("Q1", (long) 0);
+		totalTimePerQueryType.put("Q2", (long) 0);
+		totalTimePerQueryType.put("Q3", (long) 0);
+		totalTimePerQueryType.put("Q4", (long) 0);
+		totalTimePerQueryType.put("Q5", (long) 0);
+		totalTimePerQueryType.put("Q6", (long) 0);
+		totalTimePerQueryType.put("Q7", (long) 0);
+		totalTimePerQueryType.put("Q8", (long) 0);
+		totalTimePerQueryType.put("Q9", (long) 0);
+		totalTimePerQueryType.put("Q10", (long) 0);
+		totalTimePerQueryType.put("Q11", (long) 0);
+		totalTimePerQueryType.put("Q12", (long) 0);
+		totalTimePerQueryType.put("Q13", (long) 0);
+		totalTimePerQueryType.put("Q14", (long) 0);
 		totalTimePerQueryType.put("LdbcShortQuery1PersonProfile", (long) 0);
 		totalTimePerQueryType.put("LdbcShortQuery2PersonPosts", (long) 0);
 		totalTimePerQueryType.put("LdbcShortQuery3PersonFriends", (long) 0);
@@ -122,20 +122,20 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
 		totalTimePerQueryType.put("U8", (long) 0);
 		
 		
-		numberOfQueriesPerQueryType.put("LdbcQuery1", 0);
-		numberOfQueriesPerQueryType.put("LdbcQuery2", 0);
-		numberOfQueriesPerQueryType.put("LdbcQuery3", 0);
-		numberOfQueriesPerQueryType.put("LdbcQuery4", 0);
-		numberOfQueriesPerQueryType.put("LdbcQuery5", 0);
-		numberOfQueriesPerQueryType.put("LdbcQuery6", 0);
-		numberOfQueriesPerQueryType.put("LdbcQuery7", 0);
-		numberOfQueriesPerQueryType.put("LdbcQuery8", 0);
-		numberOfQueriesPerQueryType.put("LdbcQuery9", 0);
-		numberOfQueriesPerQueryType.put("LdbcQuery10", 0);
-		numberOfQueriesPerQueryType.put("LdbcQuery11", 0);
-		numberOfQueriesPerQueryType.put("LdbcQuery12", 0);
-		numberOfQueriesPerQueryType.put("LdbcQuery13", 0);
-		numberOfQueriesPerQueryType.put("LdbcQuery14", 0);
+		numberOfQueriesPerQueryType.put("Q1", 0);
+		numberOfQueriesPerQueryType.put("Q2", 0);
+		numberOfQueriesPerQueryType.put("Q3", 0);
+		numberOfQueriesPerQueryType.put("Q4", 0);
+		numberOfQueriesPerQueryType.put("Q5", 0);
+		numberOfQueriesPerQueryType.put("Q6", 0);
+		numberOfQueriesPerQueryType.put("Q7", 0);
+		numberOfQueriesPerQueryType.put("Q8", 0);
+		numberOfQueriesPerQueryType.put("Q9", 0);
+		numberOfQueriesPerQueryType.put("Q10", 0);
+		numberOfQueriesPerQueryType.put("Q11", 0);
+		numberOfQueriesPerQueryType.put("Q12", 0);
+		numberOfQueriesPerQueryType.put("Q13", 0);
+		numberOfQueriesPerQueryType.put("Q14", 0);
 		numberOfQueriesPerQueryType.put("LdbcShortQuery1PersonProfile", 0);
 		numberOfQueriesPerQueryType.put("LdbcShortQuery2PersonPosts", 0);
 		numberOfQueriesPerQueryType.put("LdbcShortQuery3PersonFriends", 0);
@@ -308,16 +308,12 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
 			long responseReceivedTimestamp) throws Exception {
 		String eStr = RabbitMQUtils.readString(expectedData);
     	String rStr = RabbitMQUtils.readString(receivedData);
-    	String [] lines = eStr.split("\n");
-        //String taskId = lines[0];
-        String type = lines[0].replaceFirst("[#]", "");
-        String eAnswers = eStr.replaceFirst("[^\n]*\n", "");
-        
+        String [] lines = eStr.split("\n\n", 2);
+        String type = eStr.substring(1, 4).trim();
         if (!type.startsWith("U")) {
-//        	LOGGER.info(taskSentTimestamp + " " + rStr);
-        	if (!eAnswers.trim().equals(rStr.trim())) {
-        		wrongAnswers.add(lines[0] + " : " + eAnswers.length() + " - " + rStr.length());
-        		wrongAnswers.add(eAnswers.trim());
+        	if (!lines[1].trim().equals(rStr.trim())) {
+        		wrongAnswers.add(lines[0] + " : " + lines[1].length() + " - " + rStr.length());
+        		wrongAnswers.add(lines[1].trim());
         		wrongAnswers.add(rStr.trim());
         	}
         }
@@ -367,60 +363,60 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
 		finalModel.add(experiment, EVALUATION_QE_AVERAGE_TIME, qeAverageTimeLiteral);
 		
 		Literal q01eAverageTimeLiteral = finalModel.createTypedLiteral(
-				(double)totalTimePerQueryType.get("LdbcQuery1")/numberOfQueriesPerQueryType.get("LdbcQuery1"), XSDDatatype.XSDdouble);
-		if (numberOfQueriesPerQueryType.get("LdbcQuery1") > 0)
+				(double)totalTimePerQueryType.get("Q1")/numberOfQueriesPerQueryType.get("Q1"), XSDDatatype.XSDdouble);
+		if (numberOfQueriesPerQueryType.get("Q1") > 0)
 			finalModel.add(experiment, EVALUATION_Q01E_AVERAGE_TIME, q01eAverageTimeLiteral);
 		Literal q02eAverageTimeLiteral = finalModel.createTypedLiteral(
-				(double)totalTimePerQueryType.get("LdbcQuery2")/numberOfQueriesPerQueryType.get("LdbcQuery2"), XSDDatatype.XSDdouble);
-		if (numberOfQueriesPerQueryType.get("LdbcQuery2") > 0)
+				(double)totalTimePerQueryType.get("Q2")/numberOfQueriesPerQueryType.get("Q2"), XSDDatatype.XSDdouble);
+		if (numberOfQueriesPerQueryType.get("Q2") > 0)
 			finalModel.add(experiment, EVALUATION_Q02E_AVERAGE_TIME, q02eAverageTimeLiteral);
 		Literal q03eAverageTimeLiteral = finalModel.createTypedLiteral(
-				(double)totalTimePerQueryType.get("LdbcQuery3")/numberOfQueriesPerQueryType.get("LdbcQuery3"), XSDDatatype.XSDdouble);
-		if (numberOfQueriesPerQueryType.get("LdbcQuery3") > 0)
+				(double)totalTimePerQueryType.get("Q3")/numberOfQueriesPerQueryType.get("Q3"), XSDDatatype.XSDdouble);
+		if (numberOfQueriesPerQueryType.get("Q3") > 0)
 			finalModel.add(experiment, EVALUATION_Q03E_AVERAGE_TIME, q03eAverageTimeLiteral);
 		Literal q04eAverageTimeLiteral = finalModel.createTypedLiteral(
-				(double)totalTimePerQueryType.get("LdbcQuery4")/numberOfQueriesPerQueryType.get("LdbcQuery4"), XSDDatatype.XSDdouble);
-		if (numberOfQueriesPerQueryType.get("LdbcQuery4") > 0)
+				(double)totalTimePerQueryType.get("Q4")/numberOfQueriesPerQueryType.get("Q4"), XSDDatatype.XSDdouble);
+		if (numberOfQueriesPerQueryType.get("Q4") > 0)
 			finalModel.add(experiment, EVALUATION_Q04E_AVERAGE_TIME, q04eAverageTimeLiteral);
 		Literal q05eAverageTimeLiteral = finalModel.createTypedLiteral(
-				(double)totalTimePerQueryType.get("LdbcQuery5")/numberOfQueriesPerQueryType.get("LdbcQuery5"), XSDDatatype.XSDdouble);
-		if (numberOfQueriesPerQueryType.get("LdbcQuery5") > 0)
+				(double)totalTimePerQueryType.get("Q5")/numberOfQueriesPerQueryType.get("Q5"), XSDDatatype.XSDdouble);
+		if (numberOfQueriesPerQueryType.get("Q5") > 0)
 			finalModel.add(experiment, EVALUATION_Q05E_AVERAGE_TIME, q05eAverageTimeLiteral);
 		Literal q06eAverageTimeLiteral = finalModel.createTypedLiteral(
-				(double)totalTimePerQueryType.get("LdbcQuery6")/numberOfQueriesPerQueryType.get("LdbcQuery6"), XSDDatatype.XSDdouble);
-		if (numberOfQueriesPerQueryType.get("LdbcQuery6") > 0)
+				(double)totalTimePerQueryType.get("Q6")/numberOfQueriesPerQueryType.get("Q6"), XSDDatatype.XSDdouble);
+		if (numberOfQueriesPerQueryType.get("Q6") > 0)
 			finalModel.add(experiment, EVALUATION_Q06E_AVERAGE_TIME, q06eAverageTimeLiteral);
 		Literal q07eAverageTimeLiteral = finalModel.createTypedLiteral(
-				(double)totalTimePerQueryType.get("LdbcQuery7")/numberOfQueriesPerQueryType.get("LdbcQuery7"), XSDDatatype.XSDdouble);
-		if (numberOfQueriesPerQueryType.get("LdbcQuery7") > 0)
+				(double)totalTimePerQueryType.get("Q7")/numberOfQueriesPerQueryType.get("Q7"), XSDDatatype.XSDdouble);
+		if (numberOfQueriesPerQueryType.get("Q7") > 0)
 			finalModel.add(experiment, EVALUATION_Q07E_AVERAGE_TIME, q07eAverageTimeLiteral);
 		Literal q08eAverageTimeLiteral = finalModel.createTypedLiteral(
-				(double)totalTimePerQueryType.get("LdbcQuery8")/numberOfQueriesPerQueryType.get("LdbcQuery8"), XSDDatatype.XSDdouble);
-		if (numberOfQueriesPerQueryType.get("LdbcQuery8") > 0)
+				(double)totalTimePerQueryType.get("Q8")/numberOfQueriesPerQueryType.get("Q8"), XSDDatatype.XSDdouble);
+		if (numberOfQueriesPerQueryType.get("Q8") > 0)
 			finalModel.add(experiment, EVALUATION_Q08E_AVERAGE_TIME, q08eAverageTimeLiteral);
 		Literal q09eAverageTimeLiteral = finalModel.createTypedLiteral(
-				(double)totalTimePerQueryType.get("LdbcQuery9")/numberOfQueriesPerQueryType.get("LdbcQuery9"), XSDDatatype.XSDdouble);
-		if (numberOfQueriesPerQueryType.get("LdbcQuery9") > 0)
+				(double)totalTimePerQueryType.get("Q9")/numberOfQueriesPerQueryType.get("Q9"), XSDDatatype.XSDdouble);
+		if (numberOfQueriesPerQueryType.get("Q9") > 0)
 			finalModel.add(experiment, EVALUATION_Q09E_AVERAGE_TIME, q09eAverageTimeLiteral);
 		Literal q10eAverageTimeLiteral = finalModel.createTypedLiteral(
-				(double)totalTimePerQueryType.get("LdbcQuery10")/numberOfQueriesPerQueryType.get("LdbcQuery10"), XSDDatatype.XSDdouble);
-		if (numberOfQueriesPerQueryType.get("LdbcQuery10") > 0)
+				(double)totalTimePerQueryType.get("Q10")/numberOfQueriesPerQueryType.get("Q10"), XSDDatatype.XSDdouble);
+		if (numberOfQueriesPerQueryType.get("Q10") > 0)
 			finalModel.add(experiment, EVALUATION_Q10E_AVERAGE_TIME, q10eAverageTimeLiteral);
 		Literal q11eAverageTimeLiteral = finalModel.createTypedLiteral(
-				(double)totalTimePerQueryType.get("LdbcQuery11")/numberOfQueriesPerQueryType.get("LdbcQuery11"), XSDDatatype.XSDdouble);
-		if (numberOfQueriesPerQueryType.get("LdbcQuery11") > 0)
+				(double)totalTimePerQueryType.get("Q11")/numberOfQueriesPerQueryType.get("Q11"), XSDDatatype.XSDdouble);
+		if (numberOfQueriesPerQueryType.get("Q11") > 0)
 			finalModel.add(experiment, EVALUATION_Q11E_AVERAGE_TIME, q11eAverageTimeLiteral);
 		Literal q12eAverageTimeLiteral = finalModel.createTypedLiteral(
-				(double)totalTimePerQueryType.get("LdbcQuery12")/numberOfQueriesPerQueryType.get("LdbcQuery12"), XSDDatatype.XSDdouble);
-		if (numberOfQueriesPerQueryType.get("LdbcQuery12") > 0)
+				(double)totalTimePerQueryType.get("Q12")/numberOfQueriesPerQueryType.get("Q12"), XSDDatatype.XSDdouble);
+		if (numberOfQueriesPerQueryType.get("Q12") > 0)
 			finalModel.add(experiment, EVALUATION_Q12E_AVERAGE_TIME, q12eAverageTimeLiteral);
 		Literal q13eAverageTimeLiteral = finalModel.createTypedLiteral(
-				(double)totalTimePerQueryType.get("LdbcQuery13")/numberOfQueriesPerQueryType.get("LdbcQuery13"), XSDDatatype.XSDdouble);
-		if (numberOfQueriesPerQueryType.get("LdbcQuery13") > 0)
+				(double)totalTimePerQueryType.get("Q13")/numberOfQueriesPerQueryType.get("Q13"), XSDDatatype.XSDdouble);
+		if (numberOfQueriesPerQueryType.get("Q13") > 0)
 			finalModel.add(experiment, EVALUATION_Q13E_AVERAGE_TIME, q13eAverageTimeLiteral);
 		Literal q14eAverageTimeLiteral = finalModel.createTypedLiteral(
-				(double)totalTimePerQueryType.get("LdbcQuery14")/numberOfQueriesPerQueryType.get("LdbcQuery14"), XSDDatatype.XSDdouble);
-		if (numberOfQueriesPerQueryType.get("LdbcQuery14") > 0)
+				(double)totalTimePerQueryType.get("Q14")/numberOfQueriesPerQueryType.get("Q14"), XSDDatatype.XSDdouble);
+		if (numberOfQueriesPerQueryType.get("Q14") > 0)
 			finalModel.add(experiment, EVALUATION_Q14E_AVERAGE_TIME, q14eAverageTimeLiteral);
 		Literal s1eAverageTimeLiteral = finalModel.createTypedLiteral(
 				(double)totalTimePerQueryType.get("LdbcShortQuery1PersonProfile")/numberOfQueriesPerQueryType.get("LdbcShortQuery1PersonProfile"), XSDDatatype.XSDdouble);

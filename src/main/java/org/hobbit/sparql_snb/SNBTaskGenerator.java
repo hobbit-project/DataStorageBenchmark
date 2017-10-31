@@ -165,7 +165,7 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
         long timestamp = System.currentTimeMillis();
         sendTaskToSystemAdapter(taskIdString, task);
 
-        data = RabbitMQUtils.writeString(queryText);
+        data = RabbitMQUtils.writeString(queryText.substring(0, 4));
         sendTaskToEvalStorage(taskIdString, timestamp, data);
         
     	oldRealTime = System.currentTimeMillis();;
@@ -181,7 +181,7 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
 			sendTaskToSystemAdapter(taskIdString, task);
 			LOGGER.info(queryString);
 			
-			data = RabbitMQUtils.writeString("TODO");
+			data = RabbitMQUtils.writeString(queryString + "\n\nTODO");
 			sendTaskToEvalStorage(taskIdString, timestamp, data);
     	}
 
@@ -189,7 +189,7 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
 	
     private String prepareUpdateText(String text) throws Exception {
     	String [] parts = text.split("[|]", -1);
-    	String queryString = "#U" + Integer.parseInt(parts[2]) + "\n" + preparePrefixes();
+    	String queryString = "#U" + parts[2] + "\n" + preparePrefixes();
     	queryString += "INSERT DATA { GRAPH <https://github.com/hobbit-project/sparql-snb> { \n" + prepareTriplets(parts) + "\n}\n}\n";
 		return queryString;
 	}
@@ -492,7 +492,7 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
     private String prepareQueryText(int queryType, String text) {
     	String [] arguments = text.split("[|]");
     	
-    	String queryString = preparePrefixes();;
+    	String queryString = "#Q" + String.valueOf(queryType) + "\n" + preparePrefixes();;
     	try {
 			queryString += new String(Files.readAllBytes(Paths.get("snb_queries/query" + String.valueOf(queryType) + ".txt")));
 		} catch (IOException e) {
