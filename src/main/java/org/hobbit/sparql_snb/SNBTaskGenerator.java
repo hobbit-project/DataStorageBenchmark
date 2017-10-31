@@ -1,7 +1,6 @@
 package org.hobbit.sparql_snb;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -23,7 +22,6 @@ import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.jena.iri.impl.Force;
 import org.hobbit.core.components.AbstractTaskGenerator;
 import org.hobbit.core.rabbit.RabbitMQUtils;
 import org.hobbit.sparql_snb.util.SNBConstants;
@@ -106,21 +104,24 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
         	rndms[i] = new Random(seed + i);
         }
         
+        /* Frequencies */
         frequency = new int[15];
-        frequency[1] = Integer.parseInt(env.get(SNBConstants.GENERATOR_Q01_FREQUENCY));
-        frequency[2] = Integer.parseInt(env.get(SNBConstants.GENERATOR_Q02_FREQUENCY));
-        frequency[3] = Integer.parseInt(env.get(SNBConstants.GENERATOR_Q03_FREQUENCY));
-        frequency[4] = Integer.parseInt(env.get(SNBConstants.GENERATOR_Q04_FREQUENCY));
-        frequency[5] = Integer.parseInt(env.get(SNBConstants.GENERATOR_Q05_FREQUENCY));
-        frequency[6] = Integer.parseInt(env.get(SNBConstants.GENERATOR_Q06_FREQUENCY));
-        frequency[7] = Integer.parseInt(env.get(SNBConstants.GENERATOR_Q07_FREQUENCY));
-        frequency[8] = Integer.parseInt(env.get(SNBConstants.GENERATOR_Q08_FREQUENCY));
-        frequency[9] = Integer.parseInt(env.get(SNBConstants.GENERATOR_Q09_FREQUENCY));
-        frequency[10] = Integer.parseInt(env.get(SNBConstants.GENERATOR_Q10_FREQUENCY));
-        frequency[11] = Integer.parseInt(env.get(SNBConstants.GENERATOR_Q11_FREQUENCY));
-        frequency[12] = Integer.parseInt(env.get(SNBConstants.GENERATOR_Q12_FREQUENCY));
-        frequency[13] = Integer.parseInt(env.get(SNBConstants.GENERATOR_Q13_FREQUENCY));
-        frequency[14] = Integer.parseInt(env.get(SNBConstants.GENERATOR_Q14_FREQUENCY));
+    	try (BufferedReader br = new BufferedReader(new FileReader("workload/frequencies.txt"))) {
+    	    String line;
+    	    while ((line = br.readLine()) != null) {
+    	       String [] parts = line.split("=");
+    	       frequency[ Integer.valueOf(parts[0].replaceAll("[^0-9]", "")) ] = Integer.valueOf(parts[1]);
+    	    }
+    	    br.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        for (int i = 1; i <= 14; i++) {
+	        if (frequency[i] <= 0) {
+	            LOGGER.info("Query " + String.valueOf(i) + " disabled");
+	        }
+        }
 	}
 
 	private HashMap<Long, String> readMappings(String path) {

@@ -21,7 +21,6 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 	private int numberOfOperations = -1;
 	private int scaleFactor = -1;
 	private int seed = -1;
-	private int [] frequency;
 	private double timeCompressionRatio = -1;
 	private long loadingStarted = -1;
 	private long loadingEnded;
@@ -119,23 +118,6 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
             }
         }
         
-        /* Frequencies */
-        frequency = new int[15];
-        for (int i = 1; i <= 14; i++) {
-	        iterator = benchmarkParamModel.listObjectsOfProperty(
-	                benchmarkParamModel.getProperty("http://w3id.org/bench#hasQ" + String.valueOf(i) + "frequency"));
-	        if (iterator.hasNext()) {
-	            try {
-	            	frequency[i] = iterator.next().asLiteral().getInt();
-	            } catch (Exception e) {
-	                LOGGER.error("Exception while parsing parameter.", e);
-	            }
-	        }
-	        if (frequency[i] <= 0) {
-	            LOGGER.info("Query " + String.valueOf(i) + " disabled");
-	        }
-        }
-        
 
 		// Create data generators
 		int numberOfDataGenerators = 1;
@@ -151,20 +133,6 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 				SNBConstants.GENERATOR_SCALE_FACTOR + "=" + scaleFactor,
 				SNBConstants.GENERATOR_SEED + "=" + seed,
 				SNBConstants.GENERATOR_NUMBER_OF_OPERATIONS + "=" + numberOfOperations,
-				SNBConstants.GENERATOR_Q01_FREQUENCY + "=" + frequency[1],
-				SNBConstants.GENERATOR_Q02_FREQUENCY + "=" + frequency[2],
-				SNBConstants.GENERATOR_Q03_FREQUENCY + "=" + frequency[3],
-				SNBConstants.GENERATOR_Q04_FREQUENCY + "=" + frequency[4],
-				SNBConstants.GENERATOR_Q05_FREQUENCY + "=" + frequency[5],
-				SNBConstants.GENERATOR_Q06_FREQUENCY + "=" + frequency[6],
-				SNBConstants.GENERATOR_Q07_FREQUENCY + "=" + frequency[7],
-				SNBConstants.GENERATOR_Q08_FREQUENCY + "=" + frequency[8],
-				SNBConstants.GENERATOR_Q09_FREQUENCY + "=" + frequency[9],
-				SNBConstants.GENERATOR_Q10_FREQUENCY + "=" + frequency[10],
-				SNBConstants.GENERATOR_Q11_FREQUENCY + "=" + frequency[11],
-				SNBConstants.GENERATOR_Q12_FREQUENCY + "=" + frequency[12],
-				SNBConstants.GENERATOR_Q13_FREQUENCY + "=" + frequency[13],
-				SNBConstants.GENERATOR_Q14_FREQUENCY + "=" + frequency[14],
 				SNBConstants.GENERATOR_INITIAL_TIME_COMPRESSION_RATIO + "=" + timeCompressionRatio
 		};
 		createTaskGenerators(TASK_GENERATOR_CONTAINER_IMAGE, numberOfTaskGenerators, envVariables);
