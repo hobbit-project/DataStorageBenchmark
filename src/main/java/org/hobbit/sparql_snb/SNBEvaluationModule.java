@@ -77,6 +77,8 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
     private Map<String, Integer> numberOfQueriesPerQueryType = new HashMap<>();
     
     private long loading_time;
+    private long workload_start_time = Long.MAX_VALUE;
+    private long workload_end_time = 0;
 
     @Override
     public void init() throws Exception {
@@ -321,6 +323,11 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
         if (!executionTimes.containsKey(type))
         	executionTimes.put(type, new ArrayList<Long>());
         executionTimes.get(type).add(responseReceivedTimestamp - taskSentTimestamp);
+        
+        if (taskSentTimestamp < workload_start_time)
+        	workload_start_time = taskSentTimestamp;
+        if (responseReceivedTimestamp > workload_end_time)
+        	workload_end_time = responseReceivedTimestamp;
 	}
 
 	@Override
@@ -482,7 +489,7 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
 		Literal loadingTimeLiteral = finalModel.createTypedLiteral(loading_time, XSDDatatype.XSDlong);
 		finalModel.add(experiment, EVALUATION_LOADING_TIME, loadingTimeLiteral);
 		
-		Literal throughputLiteral = finalModel.createTypedLiteral((double)totalQueries * 1000 / totalMS, XSDDatatype.XSDdouble);
+		Literal throughputLiteral = finalModel.createTypedLiteral((double)totalQueries * 1000 / (workload_end_time - workload_start_time), XSDDatatype.XSDdouble);
 		finalModel.add(experiment, EVALUATION_THROUGHPUT, throughputLiteral);
 		
 		Literal nbrWrngAnswrsLiteral = finalModel.createTypedLiteral(wrongAnswers.size()/3, XSDDatatype.XSDlong);
