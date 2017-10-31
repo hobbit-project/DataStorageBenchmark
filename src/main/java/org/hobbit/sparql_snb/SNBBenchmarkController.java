@@ -147,6 +147,7 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 		envVariables = new String[] {
 				SNBConstants.GENERATOR_SCALE_FACTOR + "=" + scaleFactor,
 				SNBConstants.GENERATOR_SEED + "=" + seed,
+				SNBConstants.GENERATOR_NUMBER_OF_OPERATIONS + "=" + numberOfOperations,
 				SNBConstants.GENERATOR_Q02_FREQUENCY + "=" + frequency[2],
 				SNBConstants.GENERATOR_INITIAL_TIME_COMPRESSION_RATIO + "=" + timeCompressionRatio
 		};

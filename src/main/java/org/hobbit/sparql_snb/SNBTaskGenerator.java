@@ -40,6 +40,7 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
     private HashMap<Long, String> tagMap;
     private int scaleFactor;
     private int seed;
+    private int numberOfOperations;
     
     private long oldRealTime = 0;
     private long oldSimulatedTime = 0;
@@ -93,6 +94,13 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
 			}
     	}
     	
+    	// Number of operations
+    	if (!env.containsKey(SNBConstants.GENERATOR_NUMBER_OF_OPERATIONS)) {
+            LOGGER.error("Couldn't get \"" + SNBConstants.GENERATOR_NUMBER_OF_OPERATIONS + "\" from the properties. Aborting.");
+            System.exit(1);
+        }
+    	numberOfOperations = Integer.parseInt(env.get(SNBConstants.GENERATOR_NUMBER_OF_OPERATIONS));
+    	
     	rndms = new Random[15];
         for (int i = 1; i <= 14; i++) {
         	rndms[i] = new Random(seed + i);
@@ -134,6 +142,8 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
 	@Override
 	protected void generateTask(byte[] data) throws Exception {
         String taskIdString = getNextTaskId();
+        if (Long.valueOf(taskIdString) >= numberOfOperations)
+			return;
         String dataString = RabbitMQUtils.readString(data);
         
         String [] parts = dataString.split("[|]");
