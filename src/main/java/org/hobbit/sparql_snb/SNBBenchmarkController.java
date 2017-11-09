@@ -98,8 +98,8 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
                 }
             }
             //TODO: Add different scale factors
-            if (scaleFactor != 1) {
-                LOGGER.error("Scale factor can be 1, 3 or 10. Using the default value.");
+            if (scaleFactor != 1 && scaleFactor != 3) {
+                LOGGER.error("Scale factor can be 1 or 3 (at the moment). Using the default value 1.");
                 scaleFactor = 1;
             }
         }
