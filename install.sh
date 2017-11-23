@@ -39,7 +39,7 @@ umask 022
 #
 #  Version info
 #
-VERSION=7.2
+VERSION=8.0
 export VERSION
 
 #
