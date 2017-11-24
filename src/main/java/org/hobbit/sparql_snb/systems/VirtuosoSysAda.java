@@ -74,7 +74,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 				try {
 					if (fileName.contains("/"))
 						fileName = "file" + String.format("%010d", counter++);
-					fos = new FileOutputStream(System.getProperty("user.dir") + File.separator + "datasets" + File.separator + fileName);
+					fos = new FileOutputStream("/usr/local/virtuoso-opensource/var/lib/virtuoso/db/datasets" + File.separator + fileName);
 					fos.write(content);
 					fos.close();
 				} catch (FileNotFoundException e) {
@@ -172,7 +172,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 	}
 
 	private void internalInit() {
-		String datasetsFolderName = "datasets"; 
+		String datasetsFolderName = "/usr/local/virtuoso-opensource/var/lib/virtuoso/db/datasets"; 
 		File theDir = new File(datasetsFolderName);
 		theDir.mkdir();
 
@@ -217,7 +217,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 			loadDataset();
 
 			try {
-				String datasetsFolderName = System.getProperty("user.dir") + File.separator + "datasets"; 
+				String datasetsFolderName = "/usr/local/virtuoso-opensource/var/lib/virtuoso/db/datasets"; 
 				File theDir = new File(datasetsFolderName);
 				for (File f : theDir.listFiles())
 					f.delete();
@@ -239,7 +239,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 
 	private void loadDataset() {
 		String scriptFilePath = System.getProperty("user.dir") + File.separator + "load.sh";
-		String[] command = {"/bin/bash", scriptFilePath, virtuosoContName, System.getProperty("user.dir") + File.separator + "datasets", "2"};
+		String[] command = {"/bin/bash", scriptFilePath, virtuosoContName, "/usr/local/virtuoso-opensource/var/lib/virtuoso/db/datasets", "8"};
 		Process p;
 		try {
 			p = new ProcessBuilder(command).redirectErrorStream(true).start();
