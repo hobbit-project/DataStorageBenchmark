@@ -18,5 +18,6 @@ ADD target/DataStorageBenchmark-1.0.0-SNAPSHOT.jar /sparql-snb/DataStorageBenchm
 COPY system/ /sparql-snb/
 
 WORKDIR /sparql-snb
-
+RUN mkdir -p /myvol/db
+VOLUME /myvol
 CMD ["/sparql-snb/run1.sh"]

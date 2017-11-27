@@ -30,5 +30,6 @@ RUN bash install.sh
 ENV PATH="/opt/virtuoso/bin:${PATH}"
 
 WORKDIR /sparql-snb
-
+RUN mkdir -p /myvol/db
+VOLUME /myvol
 CMD ["/sparql-snb/run2.sh"]
