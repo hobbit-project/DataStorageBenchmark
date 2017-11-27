@@ -47,6 +47,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 	private Semaphore allDataReceivedMutex = new Semaphore(0);
 
 	private int loadingNumber = 0;
+	private String datasetFolderName;
 
 	public VirtuosoSysAda(int numberOfMessagesInParallel) {
 		super(numberOfMessagesInParallel);
@@ -74,7 +75,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 				try {
 					if (fileName.contains("/"))
 						fileName = "file" + String.format("%010d", counter++);
-					fos = new FileOutputStream("/usr/local/virtuoso-opensource/var/lib/virtuoso/db/datasets" + File.separator + fileName);
+					fos = new FileOutputStream(datasetFolderName + File.separator + fileName);
 					fos.write(content);
 					fos.close();
 				} catch (FileNotFoundException e) {
@@ -172,8 +173,8 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 	}
 
 	private void internalInit() {
-		String datasetsFolderName = "/usr/local/virtuoso-opensource/var/lib/virtuoso/db/datasets"; 
-		File theDir = new File(datasetsFolderName);
+		datasetFolderName = "/myvol/datasets";
+		File theDir = new File(datasetFolderName);
 		theDir.mkdir();
 
 		queryExecFactory = new QueryExecutionFactoryHttp("http://" + virtuosoContName + ":8890/sparql");
@@ -217,8 +218,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 			loadDataset();
 
 			try {
-				String datasetsFolderName = "/usr/local/virtuoso-opensource/var/lib/virtuoso/db/datasets"; 
-				File theDir = new File(datasetsFolderName);
+				File theDir = new File(datasetFolderName);
 				for (File f : theDir.listFiles())
 					f.delete();
 				//FileUtils.deleteDirectory(theDir);
@@ -239,7 +239,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 
 	private void loadDataset() {
 		String scriptFilePath = System.getProperty("user.dir") + File.separator + "load.sh";
-		String[] command = {"/bin/bash", scriptFilePath, virtuosoContName, "/usr/local/virtuoso-opensource/var/lib/virtuoso/db/datasets", "8"};
+		String[] command = {"/bin/bash", scriptFilePath, virtuosoContName, datasetFolderName, "8"};
 		Process p;
 		try {
 			p = new ProcessBuilder(command).redirectErrorStream(true).start();
