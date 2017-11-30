@@ -72,19 +72,20 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
     	
     	Map<String, String> env = System.getenv();
     	timeCompressionRatio = Double.parseDouble(env.get(SNBConstants.GENERATOR_INITIAL_TIME_COMPRESSION_RATIO));
+    	LOGGER.info("TCR: " + String.valueOf(timeCompressionRatio));
     	
     	scaleFactor = Integer.parseInt(env.get(SNBConstants.GENERATOR_SCALE_FACTOR));
     	seed = Integer.parseInt(env.get(SNBConstants.GENERATOR_SEED));
     	
     	// reading query parameters
     	String directory = "http://hobbitdata.informatik.uni-leipzig.de/MOCHA_OC/T2/sf" + scaleFactor + "/substitution_parameters/";
-    	params = new String[15][];
-    	for (int i = 1; i <= 14; i++) {
+    	params = new String[22][];
+    	for (int i = 1; i <= 21; i++) {
 	    	String paramFile = directory + "query_" + String.valueOf(i) + "_param.txt";
 			try {
 				InputStream inputStream = new URL(paramFile).openStream();
 				String fileContent = IOUtils.toString(inputStream);
-				params[i] = fileContent.replaceFirst(".*\n", ""). split("\n");
+				params[i] = fileContent.replaceFirst(".*\n", "").split("\n");
 				inputStream.close();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -99,13 +100,13 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
         }
     	numberOfOperations = Integer.parseInt(env.get(SNBConstants.GENERATOR_NUMBER_OF_OPERATIONS));
     	
-    	rndms = new Random[15];
-        for (int i = 1; i <= 14; i++) {
+    	rndms = new Random[22];
+        for (int i = 1; i <= 21; i++) {
         	rndms[i] = new Random(seed + i);
         }
         
         /* Frequencies */
-        frequency = new int[15];
+        frequency = new int[22];
     	try (BufferedReader br = new BufferedReader(new FileReader("workload/frequencies.txt"))) {
     	    String line;
     	    while ((line = br.readLine()) != null) {
@@ -117,9 +118,12 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-        for (int i = 1; i <= 14; i++) {
+        for (int i = 1; i <= 21; i++) {
 	        if (frequency[i] <= 0) {
-	            LOGGER.info("Query " + String.valueOf(i) + " disabled");
+	        	if (i > 14)
+	        		LOGGER.info("Short query " + String.valueOf(i-14) + " disabled");
+	        	else
+	        		LOGGER.info("Query " + String.valueOf(i) + " disabled");
 	        }
         }
 	}
@@ -197,7 +201,7 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
     	
     	numberOfUpdates++;
     	
-    	for (int i = 1; i <= 14; i++) {
+    	for (int i = 1; i <= 21; i++) {
 	    	if (frequency[i] > 0 && numberOfUpdates % frequency[i] == 0) {
 	    		taskIdString = getNextTaskId();
 				String queryString = prepareQueryText(i, params[i][rndms[i].nextInt(params[i].length)]);
@@ -517,9 +521,18 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
     private String prepareQueryText(int queryType, String text) {
     	String [] arguments = text.split("[|]");
     	
-    	String queryString = "#Q" + String.valueOf(queryType) + "\n" + preparePrefixes();;
+    	String queryString;
+    	if (queryType <= 14)
+    		queryString = "#Q" + String.valueOf(queryType) + "\n" + preparePrefixes();
+    	else
+    		queryString = "#S" + String.valueOf(queryType-14) + "\n" + preparePrefixes();
     	try {
-			queryString += new String(Files.readAllBytes(Paths.get("snb_queries/query" + String.valueOf(queryType) + ".txt")));
+    		String name;
+    		if (queryType <= 14)
+    			name = "query" + String.valueOf(queryType) + ".txt";
+    		else
+    			name = "s" + String.valueOf(queryType-14) + ".txt";
+			queryString += new String(Files.readAllBytes(Paths.get("snb_queries/" + name )));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -606,6 +619,16 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
 			queryString = queryString.replaceAll("%maxDate%", sdf.format(new Date(Long.parseLong(arguments[1]))));
 			queryString = queryString.replaceAll("%limit%", "20");
 			break;
+    	case 15:
+    	case 16:
+    	case 17:
+    		queryString = queryString.replaceAll("%personId%", String.format("%d", Long.parseLong(arguments[0])));
+			queryString = queryString.replaceAll("%limit%", "10");
+    	case 18:
+    	case 19:
+    	case 20:
+    	case 21:
+    		queryString = queryString.replaceAll("%messageId%", String.format("%d", Long.parseLong(arguments[0])));
 		}
 		return queryString;
     }
