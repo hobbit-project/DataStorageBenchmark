@@ -204,6 +204,8 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
     	for (int i = 1; i <= 21; i++) {
 	    	if (frequency[i] > 0 && numberOfUpdates % frequency[i] == 0) {
 	    		taskIdString = getNextTaskId();
+	            if (taskIdString.endsWith("000"))
+	            	LOGGER.info("Generating task " + taskIdString);
 				String queryString = prepareQueryText(i, params[i][rndms[i].nextInt(params[i].length)]);
 				task = RabbitMQUtils.writeByteArrays(new byte[][] { RabbitMQUtils.writeString(queryString) });
 				timestamp = System.currentTimeMillis();
