@@ -38,9 +38,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 	private UpdateExecutionFactory updateExecFactory;
 
 	private boolean dataLoadingFinished = false;
-	SortedSet<String> graphUris = new TreeSet<String>(); 
-
-	private int counter = 0;
+	//SortedSet<String> graphUris = new TreeSet<String>(); 
 
 	private AtomicInteger totalReceived = new AtomicInteger(0);
 	private AtomicInteger totalSent = new AtomicInteger(0);
@@ -65,7 +63,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 			
 			LOGGER.info("Receiving graph URI " + fileName);
 			
-			graphUris.add(fileName);
+			//graphUris.add(fileName);
 			
 			byte [] content = new byte[dataBuffer.remaining()];
 			dataBuffer.get(content, 0, dataBuffer.remaining());
@@ -74,7 +72,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 				FileOutputStream fos;
 				try {
 					if (fileName.contains("/"))
-						fileName = "file" + String.format("%010d", counter++);
+						fileName = fileName.replaceAll("[^/]*[/]", "");
 					fos = new FileOutputStream(datasetFolderName + File.separator + fileName);
 					fos.write(content);
 					fos.close();
@@ -108,7 +106,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 	public void receiveGeneratedTask(String taskId, byte[] data) {
 		ByteBuffer buffer = ByteBuffer.wrap(data);
 		String queryString = RabbitMQUtils.readString(buffer);
-
+		LOGGER.info(taskId);
 		if (queryString.contains("INSERT DATA")) {
 			//TODO: Virtuoso hack
 			queryString = queryString.replaceFirst("INSERT DATA", "INSERT");
@@ -161,7 +159,6 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 				LOGGER.error("Got an exception while sending results.", e);
 			}
 		}
-		LOGGER.info(taskId);
 	}
 
 	@Override
@@ -209,37 +206,40 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 			}
 			LOGGER.info("All data for bulk load " + loadingNumber + " received. Proceed to the loading...");
 
-			for (String uri : this.graphUris) {
-				String create = "CREATE GRAPH " + "<" + uri + ">";
-				UpdateRequest updateRequest = UpdateRequestUtils.parse(create);
-				updateExecFactory.createUpdateProcessor(updateRequest).execute();
-			}
+//			for (String uri : this.graphUris) {
+//				String create = "CREATE GRAPH " + "<" + uri + ">";
+//				LOGGER.info(create);
+//				UpdateRequest updateRequest = UpdateRequestUtils.parse(create);
+//				updateExecFactory.createUpdateProcessor(updateRequest).execute();
+//			}
+//			this.graphUris.clear();
 
-			loadDataset();
+			loadDataset("http://graph.version." + loadingNumber);
 
 			try {
-				File theDir = new File(datasetFolderName);
-				for (File f : theDir.listFiles())
-					f.delete();
-				//FileUtils.deleteDirectory(theDir);
 				sendToCmdQueue(VirtuosoSystemAdapterConstants.BULK_LOADING_DATA_FINISHED);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 
-			LOGGER.info("Bulk phase is over.");
+			LOGGER.info("Bulk loading phase (" + loadingNumber + ") is over.");
 
 			loadingNumber++;
 
-			if (lastBulkLoad)
+			if (lastBulkLoad) {
 				dataLoadingFinished = true;
+				File theDir = new File(datasetFolderName);
+				for (File f : theDir.listFiles())
+					f.delete();
+				LOGGER.info("All bulk loading phases are over.");
+			}
 		}
 		super.receiveCommand(command, data);
 	}
 
-	private void loadDataset() {
+	private void loadDataset(String graphURI) {
 		String scriptFilePath = System.getProperty("user.dir") + File.separator + "load.sh";
-		String[] command = {"/bin/bash", scriptFilePath, virtuosoContName, datasetFolderName, "8"};
+		String[] command = {"/bin/bash", scriptFilePath, virtuosoContName, datasetFolderName, "8", graphURI};
 		Process p;
 		try {
 			p = new ProcessBuilder(command).redirectErrorStream(true).start();
