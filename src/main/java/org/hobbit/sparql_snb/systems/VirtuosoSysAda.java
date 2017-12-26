@@ -61,7 +61,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 			ByteBuffer dataBuffer = ByteBuffer.wrap(arg0);    	
 			String fileName = RabbitMQUtils.readString(dataBuffer);
 			
-			LOGGER.info("Receiving graph URI " + fileName);
+			LOGGER.info("Receiving file: " + fileName);
 			
 			//graphUris.add(fileName);
 			
@@ -106,7 +106,8 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 	public void receiveGeneratedTask(String taskId, byte[] data) {
 		ByteBuffer buffer = ByteBuffer.wrap(data);
 		String queryString = RabbitMQUtils.readString(buffer);
-		LOGGER.info(taskId);
+		long timestamp1 = System.currentTimeMillis();
+		//LOGGER.info(taskId);
 		if (queryString.contains("INSERT DATA")) {
 			//TODO: Virtuoso hack
 			queryString = queryString.replaceFirst("INSERT DATA", "INSERT");
@@ -128,8 +129,6 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 			}
 		}
 		else {
-			long timestamp1 = System.currentTimeMillis();
-			
 			QueryExecution qe = queryExecFactory.createQueryExecution(queryString);
 			ResultSet results = null;
 			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -153,12 +152,12 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 
 			try {
 				this.sendResultToEvalStorage(taskId, outputStream.toByteArray());
-				long timestamp2 = System.currentTimeMillis();
-				LOGGER.info("Task " + taskId + " executed in " + (timestamp2-timestamp1) + "milliseconds, received at: " + timestamp1);
 			} catch (IOException e) {
 				LOGGER.error("Got an exception while sending results.", e);
 			}
 		}
+		long timestamp2 = System.currentTimeMillis();
+		LOGGER.info("Task " + taskId + ": " + (timestamp2-timestamp1));
 	}
 
 	@Override

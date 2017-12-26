@@ -168,6 +168,11 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
         if (taskIdString.endsWith("000"))
         	LOGGER.info("Generating task " + taskIdString);
         String queryText = prepareUpdateText(dataString);
+        
+        // DEBUG
+        LOGGER.info("### " + taskIdString + ": " + queryText.split("\n")[0].replace("#", ""));
+        LOGGER.info(queryText);
+        
         byte[] task = RabbitMQUtils.writeByteArrays(new byte[][] { RabbitMQUtils.writeString(queryText) });
         
         // Wait for the right time
@@ -178,8 +183,6 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
         	if (waitingTime > 0) {
         		try {
         			TimeUnit.MILLISECONDS.sleep(waitingTime);
-//        			Random r = new Random();
-//        			TimeUnit.MILLISECONDS.sleep(r.nextInt(4000));
         		} catch (InterruptedException e) {
         			// TODO Auto-generated catch block
         			e.printStackTrace();
@@ -187,8 +190,6 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
         	}
         }
         
-//      if (taskIdString.endsWith("00"))
-//      		LOGGER.info("Generated task " + taskIdString + " at " + newSimulatedTime + " - " + newRealTime + " of type " + parts[2]);
         
         long timestamp = System.currentTimeMillis();
         sendTaskToSystemAdapter(taskIdString, task);
@@ -206,7 +207,13 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
 	    		taskIdString = getNextTaskId();
 	            if (taskIdString.endsWith("000"))
 	            	LOGGER.info("Generating task " + taskIdString);
+	            
 				String queryString = prepareQueryText(i, params[i][rndms[i].nextInt(params[i].length)]);
+				
+		        // DEBUG
+		        LOGGER.info("### " + taskIdString + ": " + queryString.split("\n")[0].replace("#", ""));
+		        LOGGER.info(queryText);
+				
 				task = RabbitMQUtils.writeByteArrays(new byte[][] { RabbitMQUtils.writeString(queryString) });
 				timestamp = System.currentTimeMillis();
 				sendTaskToSystemAdapter(taskIdString, task);
