@@ -208,17 +208,17 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
 	            if (taskIdString.endsWith("000"))
 	            	LOGGER.info("Generating task " + taskIdString);
 	            
-				String queryString = prepareQueryText(i, params[i][rndms[i].nextInt(params[i].length)]);
+				queryText = prepareQueryText(i, params[i][rndms[i].nextInt(params[i].length)]);
 				
 		        // DEBUG
-		        LOGGER.info("### " + taskIdString + ": " + queryString.split("\n")[0].replace("#", ""));
+		        LOGGER.info("### " + taskIdString + ": " + queryText.split("\n")[0].replace("#", ""));
 		        LOGGER.info(queryText);
 				
-				task = RabbitMQUtils.writeByteArrays(new byte[][] { RabbitMQUtils.writeString(queryString) });
+				task = RabbitMQUtils.writeByteArrays(new byte[][] { RabbitMQUtils.writeString(queryText) });
 				timestamp = System.currentTimeMillis();
 				sendTaskToSystemAdapter(taskIdString, task);
 				
-				data = RabbitMQUtils.writeString(queryString + "\n\nTODO");
+				data = RabbitMQUtils.writeString(queryText + "\n\nTODO");
 				sendTaskToEvalStorage(taskIdString, timestamp, data);
 	    	}
     	}
