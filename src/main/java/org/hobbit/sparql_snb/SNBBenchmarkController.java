@@ -97,9 +97,9 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
                     LOGGER.error("Exception while parsing parameter.", e);
                 }
             }
-            //TODO: Add different scale factors
-            if (scaleFactor != 1 && scaleFactor != 3 && scaleFactor != 10 && scaleFactor != 30) {
-                LOGGER.error("Scale factor can be 1, 3, 10 or 30 (at the moment). Using the default value 1.");
+            
+            if (scaleFactor != 1 && scaleFactor != 3 && scaleFactor != 10 && scaleFactor != 30 && scaleFactor != 100) {
+                LOGGER.error("Scale factor can be 1, 3, 10, 30 or 100 (at the moment). Using the default value 1.");
                 scaleFactor = 1;
             }
         }
