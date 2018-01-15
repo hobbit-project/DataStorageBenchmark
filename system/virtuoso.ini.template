@@ -29,7 +29,7 @@ TransactionFile			= /myvol/db/virtuoso.trx
 xa_persistent_file		= /myvol/db/virtuoso.pxa
 ErrorLogLevel			= 7
 FileExtend			= 200
-MaxCheckpointRemap		= 2000
+MaxCheckpointRemap		= 14900000
 Striping			= 0
 TempStorage			= TempDatabase
 
@@ -37,7 +37,7 @@ TempStorage			= TempDatabase
 [TempDatabase]
 DatabaseFile			= /myvol/db/virtuoso-temp.db
 TransactionFile			= /myvol/db/virtuoso-temp.trx
-MaxCheckpointRemap		= 2000
+MaxCheckpointRemap		= 14900000
 Striping			= 0
 
 
@@ -56,7 +56,7 @@ DisableTcpSocket		= 0
 ;X509ClientVerifyDepth		= 0
 ;X509ClientVerifyCAFile		= ca.pem
 MaxClientConnections		= 100
-CheckpointInterval		= 60
+CheckpointInterval		= 0
 O_DIRECT			= 0
 CaseMode			= 2
 MaxStaticCursorRows		= 5000
@@ -77,12 +77,13 @@ MaxMemPoolSize                  = 200000000
 PrefixResultNames               = 0
 MacSpotlight                    = 0
 IndexTreeMaps                   = 64
-MaxQueryMem 		 	= 2G		; memory allocated to query processor
+MaxQueryMem 		 	= 30G		; memory allocated to query processor
+HashJoinSpace 			= 30G
 VectorSize 		 	= 1000		; initial parallel query vector (array of query operations) size
 MaxVectorSize 		 	= 1000000	; query vector size threshold.
-AdjustVectorSize 	 	= 0
+AdjustVectorSize 	 	= 1
 ThreadsPerQuery 	 	= 24
-AsyncQueueMaxThreads 	 	= 10
+AsyncQueueMaxThreads 	 	= 65
 ;;
 ;; When running with large data sets, one should configure the Virtuoso
 ;; process to use between 2/3 to 3/5 of free system memory and to stripe
@@ -256,3 +257,16 @@ Load3				= plain, creolewiki
 ;Load10		= Hosting,hosting_python.so
 ;Load11		= Hosting,hosting_ruby.so
 ;Load12 = msdtc,msdtc_sample
+
+[Flags]
+enable_mt_txn       = 1
+enable_mt_transact  = 1
+qp_thread_min_usec  = 100
+mp_local_rc_sz      = 0
+dbf_explain_level   = 0
+enable_exact_p_stat = 1
+hash_join_enable    = 2
+enable_g_in_sec     = 1
+;enable_qrc = 1
+qrc_tolerance = 40
+dbf_max_itc_samples = 5
