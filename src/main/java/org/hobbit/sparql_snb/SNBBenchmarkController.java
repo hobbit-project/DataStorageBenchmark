@@ -29,9 +29,9 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 	// TODO: Add image names of containers
 	/* Data generator Docker image */
 	private static final String DATA_GENERATOR_CONTAINER_IMAGE = "git.project-hobbit.eu:4567/mspasic/dsb-datagenerator";
-	private static final String DATA_SEQ_GENERATOR_CONTAINER_IMAGE = "git.project-hobbit.eu:4567/mspasic/dsb-seqdatagenerator";
 	/* Task generator Docker image */
 	private static final String TASK_GENERATOR_CONTAINER_IMAGE = "git.project-hobbit.eu:4567/mspasic/dsb-taskgenerator";
+	private static final String SEQ_TASK_GENERATOR_CONTAINER_IMAGE = "git.project-hobbit.eu:4567/mspasic/dsb-seqtaskgenerator";
 	/* Evaluation module Docker image */
 	private static final String EVALUATION_MODULE_CONTAINER_IMAGE = "git.project-hobbit.eu:4567/mspasic/dsb-evaluationmodule";
 
@@ -141,10 +141,7 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 				SNBConstants.GENERATOR_SCALE_FACTOR + "=" + scaleFactor,
 				SNBConstants.GENERATOR_NUMBER_OF_OPERATIONS + "=" + numberOfOperations
 		};
-		if (sequential_tasks == false)
-			createDataGenerators(DATA_GENERATOR_CONTAINER_IMAGE, numberOfDataGenerators, envVariables);
-		else
-			createDataGenerators(DATA_SEQ_GENERATOR_CONTAINER_IMAGE, numberOfDataGenerators, envVariables);
+		createDataGenerators(DATA_GENERATOR_CONTAINER_IMAGE, numberOfDataGenerators, envVariables);
 
 		// Create task generators
 		int numberOfTaskGenerators = 1;
@@ -154,7 +151,10 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 				SNBConstants.GENERATOR_NUMBER_OF_OPERATIONS + "=" + numberOfOperations,
 				SNBConstants.GENERATOR_INITIAL_TIME_COMPRESSION_RATIO + "=" + timeCompressionRatio
 		};
-		createTaskGenerators(TASK_GENERATOR_CONTAINER_IMAGE, numberOfTaskGenerators, envVariables);
+		if (sequential_tasks == false)
+			createTaskGenerators(TASK_GENERATOR_CONTAINER_IMAGE, numberOfTaskGenerators, envVariables);
+		else
+			createTaskGenerators(SEQ_TASK_GENERATOR_CONTAINER_IMAGE, numberOfTaskGenerators, envVariables);
 
 		// Create evaluation storage
 		envVariables = ArrayUtils.add(DEFAULT_EVAL_STORAGE_PARAMETERS,
