@@ -1,5 +1,7 @@
 #!/bin/bash
 
+mvn package
+
 #docker build -f docker/sparql-snbvirtuososystem.docker -t git.project-hobbit.eu:4567/mspasic/sparql-snbvirtuososystem .
 docker build -f docker/virtuososystem.docker -t git.project-hobbit.eu:4567/mspasic/virtuososystem .
 #docker build -f docker/virtuosocomsystem72.docker -t git.project-hobbit.eu:4567/mspasic/virtuosocomsystem72 .
