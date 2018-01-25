@@ -170,8 +170,8 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
         String queryText = prepareUpdateText(dataString);
         
         // DEBUG
-//        LOGGER.info("### " + taskIdString + ": " + queryText.split("\n")[0].replace("#", ""));
-//        LOGGER.info(queryText);
+        LOGGER.info("### " + taskIdString + ": " + queryText.split("\n")[0].replace("#", ""));
+        LOGGER.info(queryText);
         
         byte[] task = RabbitMQUtils.writeByteArrays(new byte[][] { RabbitMQUtils.writeString(queryText) });
         
