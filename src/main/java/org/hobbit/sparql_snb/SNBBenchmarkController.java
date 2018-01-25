@@ -133,7 +133,7 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
                 }
             }
         }
-        LOGGER.info(String.valueOf(sequential_tasks));
+//        LOGGER.info("Sequential tasks: " + String.valueOf(sequential_tasks));
 
 		// Create data generators
 		int numberOfDataGenerators = 1;
