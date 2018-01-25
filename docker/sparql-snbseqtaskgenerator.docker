@@ -1,0 +1,11 @@
+FROM java
+
+ADD target/DataStorageBenchmark-1.0.0-SNAPSHOT.jar /sparql-snb/DataStorageBenchmark.jar
+
+COPY src/main/resources/snb_queries /sparql-snb/snb_queries
+COPY src/main/resources/mappings /sparql-snb/mappings
+COPY src/main/resources/workload /sparql-snb/workload
+
+WORKDIR /sparql-snb
+
+CMD java -cp DataStorageBenchmark.jar org.hobbit.core.run.ComponentStarter org.hobbit.sparql_snb.SNBSeqTaskGenerator

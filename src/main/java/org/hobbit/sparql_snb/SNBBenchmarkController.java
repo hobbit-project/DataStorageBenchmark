@@ -24,10 +24,12 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 	private double timeCompressionRatio = -1;
 	private long loadingStarted = -1;
 	private long loadingEnded;
+	private boolean sequential_tasks = false;
 
 	// TODO: Add image names of containers
 	/* Data generator Docker image */
 	private static final String DATA_GENERATOR_CONTAINER_IMAGE = "git.project-hobbit.eu:4567/mspasic/dsb-datagenerator";
+	private static final String DATA_SEQ_GENERATOR_CONTAINER_IMAGE = "git.project-hobbit.eu:4567/mspasic/dsb-seqdatagenerator";
 	/* Task generator Docker image */
 	private static final String TASK_GENERATOR_CONTAINER_IMAGE = "git.project-hobbit.eu:4567/mspasic/dsb-taskgenerator";
 	/* Evaluation module Docker image */
@@ -118,6 +120,19 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
             }
         }
         
+        /* Sequential tasks */
+        if (sequential_tasks == false) {
+
+            iterator = benchmarkParamModel.listObjectsOfProperty(
+                    benchmarkParamModel.getProperty("http://w3id.org/bench#hasSeqentialTasks"));
+            if (iterator.hasNext()) {
+                try {
+                    sequential_tasks = iterator.next().asLiteral().getBoolean();
+                } catch (Exception e) {
+                    LOGGER.error("Exception while parsing parameter.", e);
+                }
+            }
+        }
 
 		// Create data generators
 		int numberOfDataGenerators = 1;
@@ -125,7 +140,10 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 				SNBConstants.GENERATOR_SCALE_FACTOR + "=" + scaleFactor,
 				SNBConstants.GENERATOR_NUMBER_OF_OPERATIONS + "=" + numberOfOperations
 		};
-		createDataGenerators(DATA_GENERATOR_CONTAINER_IMAGE, numberOfDataGenerators, envVariables);
+		if (sequential_tasks == false)
+			createDataGenerators(DATA_GENERATOR_CONTAINER_IMAGE, numberOfDataGenerators, envVariables);
+		else
+			createDataGenerators(DATA_SEQ_GENERATOR_CONTAINER_IMAGE, numberOfDataGenerators, envVariables);
 
 		// Create task generators
 		int numberOfTaskGenerators = 1;

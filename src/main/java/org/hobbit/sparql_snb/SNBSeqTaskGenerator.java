@@ -22,15 +22,16 @@ import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.IOUtils;
+import org.hobbit.core.components.AbstractSequencingTaskGenerator;
 import org.hobbit.core.components.AbstractTaskGenerator;
 import org.hobbit.core.rabbit.RabbitMQUtils;
 import org.hobbit.sparql_snb.util.SNBConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SNBTaskGenerator extends AbstractTaskGenerator {
+public class SNBSeqTaskGenerator extends AbstractSequencingTaskGenerator {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(SNBTaskGenerator.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(SNBSeqTaskGenerator.class);
 	
     private HashMap<Long, String> placeMap;
     private HashMap<Long, String> companyMap;
@@ -40,9 +41,6 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
     private int seed;
     private int numberOfOperations;
     
-    private long oldRealTime = 0;
-    private long oldSimulatedTime = 0;
-    
     private double timeCompressionRatio;
     
     String [][] params;
@@ -51,8 +49,8 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
     
     long numberOfUpdates = 0;
 	
-    public SNBTaskGenerator() {
-    	super(1);
+    public SNBSeqTaskGenerator() {
+    	super();
 	}
     
     @Override
@@ -175,30 +173,11 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
         
         byte[] task = RabbitMQUtils.writeByteArrays(new byte[][] { RabbitMQUtils.writeString(queryText) });
         
-        // Wait for the right time
-        long newRealTime = System.currentTimeMillis();
-        long newSimulatedTime = Long.parseLong(parts[0]);
-        if (oldRealTime != 0) {
-        	long waitingTime = (long)((newSimulatedTime - oldSimulatedTime)/timeCompressionRatio - (newRealTime - oldRealTime));
-        	if (waitingTime > 0) {
-        		try {
-        			TimeUnit.MILLISECONDS.sleep(waitingTime);
-        		} catch (InterruptedException e) {
-        			// TODO Auto-generated catch block
-        			e.printStackTrace();
-        		}
-        	}
-        }
-        
-        
         long timestamp = System.currentTimeMillis();
         sendTaskToSystemAdapter(taskIdString, task);
 
         data = RabbitMQUtils.writeString(queryText.substring(0, 4));
         sendTaskToEvalStorage(taskIdString, timestamp, data);
-        
-    	oldRealTime = System.currentTimeMillis();;
-    	oldSimulatedTime = newSimulatedTime;
     	
     	numberOfUpdates++;
     	
