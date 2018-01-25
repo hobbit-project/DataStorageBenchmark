@@ -1,4 +1,4 @@
-Query1_freq=0
+Query1_freq=26
 Query2_freq=37
 Query3_freq=106
 Query4_freq=36
@@ -9,7 +9,7 @@ Query8_freq=9
 Query9_freq=384
 Query10_freq=37
 Query11_freq=20
-Query12_freq=0
+Query12_freq=44
 Query13_freq=19
 Query14_freq=49
 Query15_freq=2
