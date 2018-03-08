@@ -76,7 +76,7 @@ public class SNBDataGenerator extends AbstractDataGenerator {
     }
     
     private void downloadFileAndSendData() {
-    	String directory = "http://hobbitdata.informatik.uni-leipzig.de/mighty-storage-challenge/Task2/sf" + scaleFactor + "/";
+    	String directory = "https://hobbitdata.informatik.uni-leipzig.de/mighty-storage-challenge/Task2/sf" + scaleFactor + "/";
     	String datasetFiles = directory + "dataset_files.txt";
     	try { 
 			InputStream is = new URL(datasetFiles).openStream();
@@ -113,8 +113,8 @@ public class SNBDataGenerator extends AbstractDataGenerator {
     @Override
     public void receiveCommand(byte command, byte[] data) {
         if (command == VirtuosoSystemAdapterConstants.BULK_LOADING_DATA_FINISHED) {
-        	String tasksFile = "http://hobbitdata.informatik.uni-leipzig.de/mighty-storage-challenge/Task2/sf1/tasks.txt";
-        	String answersFile = "http://hobbitdata.informatik.uni-leipzig.de/mighty-storage-challenge/Task2/sf1/answers.txt";
+        	String tasksFile = "https://hobbitdata.informatik.uni-leipzig.de/mighty-storage-challenge/Task2/sf1/tasks.txt";
+        	String answersFile = "https://hobbitdata.informatik.uni-leipzig.de/mighty-storage-challenge/Task2/sf1/answers.txt";
         	LOGGER.info("Downloading tasks");
         	try {            
         		InputStream inputStream1 = new URL(tasksFile).openStream();
