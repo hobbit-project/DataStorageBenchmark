@@ -74,7 +74,7 @@ public class SNBDataGenerator extends AbstractDataGenerator {
     }
     
     private void downloadFileAndSendData() {
-    	String directory = "http://hobbitdata.informatik.uni-leipzig.de/MOCHA_OC/T2/sf" + scaleFactor + "/";
+    	String directory = "https://hobbitdata.informatik.uni-leipzig.de/MOCHA_OC/T2/sf" + scaleFactor + "/";
     	String datasetFiles = directory + "dataset_files.txt";
     	try { 
 			InputStream is = new URL(datasetFiles).openStream();
@@ -109,7 +109,7 @@ public class SNBDataGenerator extends AbstractDataGenerator {
     @Override
     public void receiveCommand(byte command, byte[] data) {
         if (command == VirtuosoSystemAdapterConstants.BULK_LOADING_DATA_FINISHED) {
-        	String directory = "http://hobbitdata.informatik.uni-leipzig.de/MOCHA_OC/T2/sf" + scaleFactor + "/";
+        	String directory = "https://hobbitdata.informatik.uni-leipzig.de/MOCHA_OC/T2/sf" + scaleFactor + "/";
         	String updateFile1 = directory + "updateStream_0_0_person.csv";
         	String updateFile2 = directory + "updateStream_0_0_forum.csv";
         	LOGGER.info("Downloading updates");

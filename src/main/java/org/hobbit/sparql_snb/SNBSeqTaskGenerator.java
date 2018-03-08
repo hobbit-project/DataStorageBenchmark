@@ -76,7 +76,7 @@ public class SNBSeqTaskGenerator extends AbstractSequencingTaskGenerator {
     	seed = Integer.parseInt(env.get(SNBConstants.GENERATOR_SEED));
     	
     	// reading query parameters
-    	String directory = "http://hobbitdata.informatik.uni-leipzig.de/MOCHA_OC/T2/sf" + scaleFactor + "/substitution_parameters/";
+    	String directory = "https://hobbitdata.informatik.uni-leipzig.de/MOCHA_OC/T2/sf" + scaleFactor + "/substitution_parameters/";
     	params = new String[22][];
     	for (int i = 1; i <= 21; i++) {
 	    	String paramFile = directory + "query_" + String.valueOf(i) + "_param.txt";
