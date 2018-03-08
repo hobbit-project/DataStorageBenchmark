@@ -127,7 +127,9 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
                     benchmarkParamModel.getProperty("http://w3id.org/bench#hasSeqentialTasks"));
             if (iterator.hasNext()) {
                 try {
-                    sequential_tasks = (iterator.next().asLiteral().getInt() == 0 ? false : true);
+                    //sequential_tasks = (iterator.next().asLiteral().getInt() == 0 ? false : true);
+                	sequential_tasks = iterator.next().asLiteral().getBoolean();
+                	LOGGER.info("Boolean: " + String.valueOf(sequential_tasks));
                 } catch (Exception e) {
                     LOGGER.error("Exception while parsing parameter.", e);
                 }
