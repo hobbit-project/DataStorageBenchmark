@@ -225,11 +225,12 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 
 			loadingNumber++;
 
+			File theDir = new File(datasetFolderName);
+			for (File f : theDir.listFiles())
+				f.delete();
+			
 			if (lastBulkLoad) {
 				dataLoadingFinished = true;
-				File theDir = new File(datasetFolderName);
-				for (File f : theDir.listFiles())
-					f.delete();
 				LOGGER.info("All bulk loading phases are over.");
 			}
 		}
