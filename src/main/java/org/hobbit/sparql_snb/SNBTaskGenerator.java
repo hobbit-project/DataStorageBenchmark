@@ -46,10 +46,12 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
     private double timeCompressionRatio;
     
     String [][] params;
+    String [] answers;
     Random [] rndms;
     int [] frequency;
     
     long numberOfUpdates = 0;
+    int selectId = 0; 
 	
     public SNBTaskGenerator() {
     	super(1);
@@ -126,6 +128,18 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
 	        		LOGGER.info("Query " + String.valueOf(i) + " disabled");
 	        }
         }
+        
+    	// reading query answers
+    	String answersFile = "https://hobbitdata.informatik.uni-leipzig.de/MOCHA_OC/T2/sf" + scaleFactor + "/answers.txt";
+		try {
+			InputStream inputStream = new URL(answersFile).openStream();
+			String fileContent = IOUtils.toString(inputStream);
+			answers = fileContent.split("--------------------\n");
+			inputStream.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	private HashMap<Long, String> readMappings(String path) {
@@ -218,7 +232,8 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
 				timestamp = System.currentTimeMillis();
 				sendTaskToSystemAdapter(taskIdString, task);
 				
-				data = RabbitMQUtils.writeString(queryText + "\n\nTODO");
+				String a = (answers.length <= selectId ? "TODO" : answers[selectId++]);
+				data = RabbitMQUtils.writeString(queryText + "\n\n" + a);
 				sendTaskToEvalStorage(taskIdString, timestamp, data);
 	    	}
     	}
