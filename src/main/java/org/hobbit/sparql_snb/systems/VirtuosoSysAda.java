@@ -8,8 +8,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -152,12 +150,14 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 
 			try {
 				this.sendResultToEvalStorage(taskId, outputStream.toByteArray());
+				LOGGER.info(new String(outputStream.toByteArray()));
+				LOGGER.info("--------------------");
 			} catch (IOException e) {
 				LOGGER.error("Got an exception while sending results.", e);
 			}
 		}
 		long timestamp2 = System.currentTimeMillis();
-		LOGGER.info("Task " + taskId + ": " + (timestamp2-timestamp1));
+		//LOGGER.info("Task " + taskId + ": " + (timestamp2-timestamp1));
 	}
 
 	@Override
