@@ -182,8 +182,8 @@ public class SNBSeqTaskGenerator extends AbstractSequencingTaskGenerator {
         String queryText = prepareUpdateText(dataString);
         
         // DEBUG
-        LOGGER.info("### " + taskIdString + ": " + queryText.split("\n")[0].replace("#", ""));
-        LOGGER.info(queryText);
+        //LOGGER.info("### " + taskIdString + ": " + queryText.split("\n")[0].replace("#", ""));
+        //LOGGER.info(queryText);
         
         byte[] task = RabbitMQUtils.writeByteArrays(new byte[][] { RabbitMQUtils.writeString(queryText) });
         
@@ -204,8 +204,8 @@ public class SNBSeqTaskGenerator extends AbstractSequencingTaskGenerator {
 				queryText = prepareQueryText(i, params[i][rndms[i].nextInt(params[i].length)]);
 				
 		        // DEBUG
-		        LOGGER.info("### " + taskIdString + ": " + queryText.split("\n")[0].replace("#", ""));
-		        LOGGER.info(queryText);
+		        //LOGGER.info("### " + taskIdString + ": " + queryText.split("\n")[0].replace("#", ""));
+		        //LOGGER.info(queryText);
 				
 				task = RabbitMQUtils.writeByteArrays(new byte[][] { RabbitMQUtils.writeString(queryText) });
 				timestamp = System.currentTimeMillis();
