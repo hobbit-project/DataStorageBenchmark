@@ -150,6 +150,8 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 
 			try {
 				this.sendResultToEvalStorage(taskId, outputStream.toByteArray());
+//				LOGGER.info(new String(outputStream.toByteArray()));
+//				LOGGER.info("--------------------");
 			} catch (IOException e) {
 				LOGGER.error("Got an exception while sending results.", e);
 			}
