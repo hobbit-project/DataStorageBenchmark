@@ -119,12 +119,12 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
                 }
             }
         }
-        
+
         /* Sequential tasks */
         if (sequential_tasks == false) {
 
             iterator = benchmarkParamModel.listObjectsOfProperty(
-                    benchmarkParamModel.getProperty("http://w3id.org/bench#hasSeqentialTasks"));
+                    benchmarkParamModel.getProperty("http://w3id.org/bench#hasSequentialTasks"));
             if (iterator.hasNext()) {
                 try {
                     //sequential_tasks = (iterator.next().asLiteral().getInt() == 0 ? false : true);
