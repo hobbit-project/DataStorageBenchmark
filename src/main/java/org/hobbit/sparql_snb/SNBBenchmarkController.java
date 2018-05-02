@@ -25,6 +25,7 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 	private long loadingStarted = -1;
 	private long loadingEnded;
 	private boolean sequential_tasks = false;
+	private String disableEnableQueryType = null;
 
 	// TODO: Add image names of containers
 	/* Data generator Docker image */
@@ -73,10 +74,11 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
         /* Time compression ratio */
         if (timeCompressionRatio == -1) {
             iterator = benchmarkParamModel.listObjectsOfProperty(
-                    benchmarkParamModel.getProperty("http://w3id.org/bench#initialTimeCompressionRatio"));
+                    benchmarkParamModel.getProperty("http://w3id.org/bench#timeCompressionRatio"));
             if (iterator.hasNext()) {
                 try {
                     timeCompressionRatio = iterator.next().asLiteral().getDouble();
+                    LOGGER.info("TCR: " + String.valueOf(timeCompressionRatio));
                 } catch (Exception e) {
                     LOGGER.error("Exception while parsing parameter.", e);
                 }
@@ -135,7 +137,21 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
                 }
             }
         }
-//        LOGGER.info("Sequential tasks: " + String.valueOf(sequential_tasks));
+        
+        /* Disable/Enable Query types */
+        if (disableEnableQueryType == null) {
+
+            iterator = benchmarkParamModel.listObjectsOfProperty(
+                    benchmarkParamModel.getProperty("http://w3id.org/bench#enableQueries"));
+            if (iterator.hasNext()) {
+                try {
+                	disableEnableQueryType = iterator.next().asLiteral().getString();
+                	LOGGER.info("String: " + disableEnableQueryType);
+                } catch (Exception e) {
+                    LOGGER.error("Exception while parsing parameter.", e);
+                }
+            }
+        }
 
 		// Create data generators
 		int numberOfDataGenerators = 1;
@@ -151,7 +167,8 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 				SNBConstants.GENERATOR_SCALE_FACTOR + "=" + scaleFactor,
 				SNBConstants.GENERATOR_SEED + "=" + seed,
 				SNBConstants.GENERATOR_NUMBER_OF_OPERATIONS + "=" + numberOfOperations,
-				SNBConstants.GENERATOR_INITIAL_TIME_COMPRESSION_RATIO + "=" + timeCompressionRatio
+				SNBConstants.GENERATOR_INITIAL_TIME_COMPRESSION_RATIO + "=" + timeCompressionRatio,
+				SNBConstants.DISABLE_ENABLE_QUERY_TYPE + "=" + disableEnableQueryType
 		};
 		if (sequential_tasks == false)
 			createTaskGenerators(TASK_GENERATOR_CONTAINER_IMAGE, numberOfTaskGenerators, envVariables);

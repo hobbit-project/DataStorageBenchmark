@@ -7,6 +7,7 @@ public final class SNBConstants {
 	public static final String GENERATOR_INITIAL_TIME_COMPRESSION_RATIO = "generator_initial_time_compression_ratio";
 	public static final String GENERATOR_SEED = "generator_seed";
 	public static final String SEQUENTIAL_TASKS = "sequential_tasks";
+	public static final String DISABLE_ENABLE_QUERY_TYPE = "disableEnableQueryType";
 	
 	public static final String EVALUATION_QE_AVERAGE_TIME = "evaluation_query_execution_average_time";
 	

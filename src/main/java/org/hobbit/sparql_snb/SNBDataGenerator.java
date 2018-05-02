@@ -122,18 +122,18 @@ public class SNBDataGenerator extends AbstractDataGenerator {
         		String [] lines1 = fileContent1.split("\n");
         		String [] lines2 = fileContent2.split("\n");
         		int i = 0, j = 0;
-        		while (i < lines1.length && j < lines2.length && i+j < numberOfOperations) {
+        		while (i < lines1.length && j < lines2.length && i+j < numberOfOperations * 10) {
         			if (lines1[i].compareTo(lines2[j]) < 0)
         				bytesArray = RabbitMQUtils.writeString(lines1[i++]);
         			else
         				bytesArray = RabbitMQUtils.writeString(lines2[j++]);
         			sendDataToTaskGenerator(bytesArray);
         		}
-        		while (i < lines1.length && i+j < numberOfOperations) {
+        		while (i < lines1.length && i+j < numberOfOperations * 10) {
         			bytesArray = RabbitMQUtils.writeString(lines1[i++]);
         			sendDataToTaskGenerator(bytesArray);
         		}
-        		while (j < lines2.length && i+j < numberOfOperations) {
+        		while (j < lines2.length && i+j < numberOfOperations * 10) {
         			bytesArray = RabbitMQUtils.writeString(lines2[j++]);
         			sendDataToTaskGenerator(bytesArray);
         		}

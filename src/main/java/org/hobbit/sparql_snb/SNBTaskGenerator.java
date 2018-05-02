@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -39,6 +40,7 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
     private int scaleFactor;
     private int seed;
     private int numberOfOperations;
+    private String disableEnableQueryType;
     
     private long oldRealTime = 0;
     private long oldSimulatedTime = 0;
@@ -78,6 +80,8 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
     	
     	scaleFactor = Integer.parseInt(env.get(SNBConstants.GENERATOR_SCALE_FACTOR));
     	seed = Integer.parseInt(env.get(SNBConstants.GENERATOR_SEED));
+    	disableEnableQueryType = env.get(SNBConstants.DISABLE_ENABLE_QUERY_TYPE);
+    	LOGGER.info("D/E query type: " + disableEnableQueryType);
     	
     	// reading query parameters
     	String directory = "https://hobbitdata.informatik.uni-leipzig.de/MOCHA_OC/T2/sf" + scaleFactor + "/substitution_parameters/";
@@ -173,20 +177,11 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
 
 	@Override
 	protected void generateTask(byte[] data) throws Exception {
-        String taskIdString = getNextTaskId();
-        if (Long.valueOf(taskIdString) >= numberOfOperations)
-			return;
         String dataString = RabbitMQUtils.readString(data);
         
         String [] parts = dataString.split("[|]");
-        if (taskIdString.endsWith("000"))
-        	LOGGER.info("Generating task " + taskIdString);
         String queryText = prepareUpdateText(dataString);
-        
-        // DEBUG
-        //LOGGER.info("### " + taskIdString + ": " + queryText.split("\n")[0].replace("#", ""));
-        //LOGGER.info(queryText);
-        
+                
         byte[] task = RabbitMQUtils.writeByteArrays(new byte[][] { RabbitMQUtils.writeString(queryText) });
         
         // Wait for the right time
@@ -204,12 +199,24 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
         	}
         }
         
-        
-        long timestamp = System.currentTimeMillis();
-        sendTaskToSystemAdapter(taskIdString, task);
+        int updateQueryType = queryText.charAt(2) - '0';
+        if (disableEnableQueryType.length() < 21 + updateQueryType || disableEnableQueryType.charAt(21 + updateQueryType - 1) != '0') {
+        	String taskIdString = getNextTaskId();
+            if (Long.valueOf(taskIdString) >= numberOfOperations)
+    			return;
+            if (taskIdString.endsWith("000"))
+            	LOGGER.info("Generating task " + taskIdString);
+            
+            // DEBUG
+            //LOGGER.info("### " + taskIdString + ": " + queryText.split("\n")[0].replace("#", ""));
+            //LOGGER.info(queryText);
+            
+        	long timestamp = System.currentTimeMillis();
+        	sendTaskToSystemAdapter(taskIdString, task);
 
-        data = RabbitMQUtils.writeString(queryText.substring(0, 4));
-        sendTaskToEvalStorage(taskIdString, timestamp, data);
+        	data = RabbitMQUtils.writeString(queryText.substring(0, 4));
+        	sendTaskToEvalStorage(taskIdString, timestamp, data);
+        }
         
     	oldRealTime = System.currentTimeMillis();;
     	oldSimulatedTime = newSimulatedTime;
@@ -218,7 +225,9 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
     	
     	for (int i = 1; i <= 21; i++) {
 	    	if (frequency[i] > 0 && numberOfUpdates % frequency[i] == 0) {
-	    		taskIdString = getNextTaskId();
+	    		if (i > disableEnableQueryType.length() || disableEnableQueryType.charAt(i-1) == '0')
+	    			continue;
+	    		String taskIdString = getNextTaskId();
 	            if (taskIdString.endsWith("000"))
 	            	LOGGER.info("Generating task " + taskIdString);
 	            
@@ -229,7 +238,7 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
 		        //LOGGER.info(queryText);
 				
 				task = RabbitMQUtils.writeByteArrays(new byte[][] { RabbitMQUtils.writeString(queryText) });
-				timestamp = System.currentTimeMillis();
+				long timestamp = System.currentTimeMillis();
 				sendTaskToSystemAdapter(taskIdString, task);
 				
 				String a = (answers.length <= selectId ? "TODO" : answers[selectId++]);
