@@ -41,6 +41,7 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
     private int seed;
     private int numberOfOperations;
     private String disableEnableQueryType;
+    private boolean finished = false;
     
     private long oldRealTime = 0;
     private long oldSimulatedTime = 0;
@@ -177,6 +178,9 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
 
 	@Override
 	protected void generateTask(byte[] data) throws Exception {
+		if (finished)
+			return;
+		
         String dataString = RabbitMQUtils.readString(data);
         
         String [] parts = dataString.split("[|]");
@@ -202,9 +206,11 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
         int updateQueryType = queryText.charAt(2) - '0';
         if (disableEnableQueryType.length() < 21 + updateQueryType || disableEnableQueryType.charAt(21 + updateQueryType - 1) != '0') {
         	String taskIdString = getNextTaskId();
-            if (Long.valueOf(taskIdString) >= numberOfOperations)
+            if (Long.valueOf(taskIdString) >= numberOfOperations) {
+            	finished = true;
     			return;
-            if (taskIdString.endsWith("000"))
+            }
+            if (taskIdString.endsWith("00"))
             	LOGGER.info("Generating task " + taskIdString);
             
             // DEBUG
@@ -225,25 +231,25 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
     	
     	for (int i = 1; i <= 21; i++) {
 	    	if (frequency[i] > 0 && numberOfUpdates % frequency[i] == 0) {
-	    		if (i > disableEnableQueryType.length() || disableEnableQueryType.charAt(i-1) == '0')
-	    			continue;
-	    		String taskIdString = getNextTaskId();
-	            if (taskIdString.endsWith("000"))
-	            	LOGGER.info("Generating task " + taskIdString);
-	            
-				queryText = prepareQueryText(i, params[i][rndms[i].nextInt(params[i].length)]);
-				
-		        // DEBUG
-		        //LOGGER.info("### " + taskIdString + ": " + queryText.split("\n")[0].replace("#", ""));
-		        //LOGGER.info(queryText);
-				
-				task = RabbitMQUtils.writeByteArrays(new byte[][] { RabbitMQUtils.writeString(queryText) });
-				long timestamp = System.currentTimeMillis();
-				sendTaskToSystemAdapter(taskIdString, task);
-				
-				String a = (answers.length <= selectId ? "TODO" : answers[selectId++]);
-				data = RabbitMQUtils.writeString(queryText + "\n\n" + a);
-				sendTaskToEvalStorage(taskIdString, timestamp, data);
+	    		if (i > disableEnableQueryType.length() || disableEnableQueryType.charAt(i-1) != '0') {
+		    		String taskIdString = getNextTaskId();
+		            if (taskIdString.endsWith("00"))
+		            	LOGGER.info("Generating task " + taskIdString);
+		            
+					queryText = prepareQueryText(i, params[i][rndms[i].nextInt(params[i].length)]);
+					
+			        // DEBUG
+			        //LOGGER.info("### " + taskIdString + ": " + queryText.split("\n")[0].replace("#", ""));
+			        //LOGGER.info(queryText);
+					
+					task = RabbitMQUtils.writeByteArrays(new byte[][] { RabbitMQUtils.writeString(queryText) });
+					long timestamp = System.currentTimeMillis();
+					sendTaskToSystemAdapter(taskIdString, task);
+					
+					String a = (answers.length <= selectId ? "TODO" : answers[selectId++]);
+					data = RabbitMQUtils.writeString(queryText + "\n\n" + a);
+					sendTaskToEvalStorage(taskIdString, timestamp, data);
+	    		}
 	    	}
     	}
 
