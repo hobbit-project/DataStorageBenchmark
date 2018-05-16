@@ -40,6 +40,7 @@ public class SNBSeqTaskGenerator extends AbstractSequencingTaskGenerator {
     private int scaleFactor;
     private int seed;
     private int numberOfOperations;
+    private int warmupCount;
     private String disableEnableQueryType;
     private boolean finished = false;
     
@@ -103,6 +104,13 @@ public class SNBSeqTaskGenerator extends AbstractSequencingTaskGenerator {
             System.exit(1);
         }
     	numberOfOperations = Integer.parseInt(env.get(SNBConstants.GENERATOR_NUMBER_OF_OPERATIONS));
+    	
+    	/* warmUp count */
+    	if (!env.containsKey(SNBConstants.WARMUP_COUNT)) {
+            LOGGER.error("Couldn't get \"" + SNBConstants.WARMUP_COUNT + "\" from the properties. Aborting.");
+            System.exit(1);
+        }
+        warmupCount = Integer.parseInt(env.get(SNBConstants.WARMUP_COUNT));
     	
     	rndms = new Random[22];
         for (int i = 1; i <= 21; i++) {
@@ -202,7 +210,10 @@ public class SNBSeqTaskGenerator extends AbstractSequencingTaskGenerator {
         	long timestamp = System.currentTimeMillis();
         	sendTaskToSystemAdapter(taskIdString, task);
 
-        	data = RabbitMQUtils.writeString(queryText.substring(0, 4));
+        	if (Long.valueOf(taskIdString) < warmupCount)
+        		data = RabbitMQUtils.writeString("#WRM");
+        	else
+        		data = RabbitMQUtils.writeString(queryText.substring(0, 4));
         	sendTaskToEvalStorage(taskIdString, timestamp, data);
         }
     	
@@ -226,7 +237,10 @@ public class SNBSeqTaskGenerator extends AbstractSequencingTaskGenerator {
 					sendTaskToSystemAdapter(taskIdString, task);
 					
 					String a = (answers.length <= selectId ? "TODO" : answers[selectId++]);
-					data = RabbitMQUtils.writeString(queryText + "\n\n" + a);
+					if (Long.valueOf(taskIdString) < warmupCount)
+		        		data = RabbitMQUtils.writeString("#WRM");
+		        	else
+		        		data = RabbitMQUtils.writeString(queryText + "\n\n" + a);
 					sendTaskToEvalStorage(taskIdString, timestamp, data);
 	    		}
 	    	}

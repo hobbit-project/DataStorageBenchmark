@@ -21,6 +21,7 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 	private int numberOfOperations = -1;
 	private int scaleFactor = -1;
 	private int seed = -1;
+	private int warmupCount = -1;
 	private double timeCompressionRatio = -1;
 	private long loadingStarted = -1;
 	private long loadingEnded;
@@ -61,13 +62,14 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
             if (iterator.hasNext()) {
                 try {
                     numberOfOperations = iterator.next().asLiteral().getInt();
+                    LOGGER.info("Number of operations: " + String.valueOf(numberOfOperations));
                 } catch (Exception e) {
                     LOGGER.error("Exception while parsing parameter.", e);
                 }
             }
             if (numberOfOperations < 0) {
                 LOGGER.error("Couldn't get the number of operations from the parameter model. Using the default value.");
-                numberOfOperations = 10000;
+                numberOfOperations = 20000;
             }
         }
         
@@ -97,6 +99,7 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
             if (iterator.hasNext()) {
                 try {
                     scaleFactor = iterator.next().asLiteral().getInt();
+                    LOGGER.info("Scale Factor: " + String.valueOf(scaleFactor));
                 } catch (Exception e) {
                     LOGGER.error("Exception while parsing parameter.", e);
                 }
@@ -116,12 +119,32 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
             if (iterator.hasNext()) {
                 try {
                     seed = iterator.next().asLiteral().getInt();
+                    LOGGER.info("Seed: " + String.valueOf(seed));
                 } catch (Exception e) {
                     LOGGER.error("Exception while parsing parameter.", e);
                 }
             }
         }
 
+        /* Warmup count */
+        if (warmupCount == -1) {
+
+            iterator = benchmarkParamModel.listObjectsOfProperty(
+                    benchmarkParamModel.getProperty("http://w3id.org/bench#warmupPercent"));
+            if (iterator.hasNext()) {
+                try {
+                	int warmupPercent;
+                	warmupPercent = iterator.next().asLiteral().getInt();
+                    if (warmupPercent < 0 || warmupPercent > 100)
+                    	warmupPercent = 20;
+                    warmupCount = numberOfOperations * warmupPercent / 100;
+                    LOGGER.info("Warmup count: " + String.valueOf(warmupCount));
+                } catch (Exception e) {
+                    LOGGER.error("Exception while parsing parameter.", e);
+                }
+            }
+        }
+        
         /* Sequential tasks */
         if (sequential_tasks == false) {
 
@@ -131,7 +154,7 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
                 try {
                     //sequential_tasks = (iterator.next().asLiteral().getInt() == 0 ? false : true);
                 	sequential_tasks = iterator.next().asLiteral().getBoolean();
-                	LOGGER.info("Boolean: " + String.valueOf(sequential_tasks));
+                	LOGGER.info("Sequential task: " + String.valueOf(sequential_tasks));
                 } catch (Exception e) {
                     LOGGER.error("Exception while parsing parameter.", e);
                 }
@@ -167,6 +190,7 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 				SNBConstants.GENERATOR_SCALE_FACTOR + "=" + scaleFactor,
 				SNBConstants.GENERATOR_SEED + "=" + seed,
 				SNBConstants.GENERATOR_NUMBER_OF_OPERATIONS + "=" + numberOfOperations,
+				SNBConstants.WARMUP_COUNT + "=" + warmupCount,
 				SNBConstants.GENERATOR_INITIAL_TIME_COMPRESSION_RATIO + "=" + timeCompressionRatio,
 				SNBConstants.DISABLE_ENABLE_QUERY_TYPE + "=" + disableEnableQueryType
 		};
@@ -181,7 +205,8 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 		if (sequential_tasks == true)
 			envVariables = ArrayUtils.add(envVariables, "ACKNOWLEDGEMENT_FLAG=true");
 		createEvaluationStorage(DEFAULT_EVAL_STORAGE_IMAGE, envVariables);
-		// TODO: get KPIs for evaluation module
+		
+		// KPIs for evaluation module
 		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_QE_AVERAGE_TIME + "=" + "http://w3id.org/bench#QEAverageTime");
 		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_Q01E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q01EAverageTime");
 		envVariablesEvaluationModule.add(SNBConstants.EVALUATION_Q02E_AVERAGE_TIME + "=" + "http://w3id.org/bench#Q02EAverageTime");

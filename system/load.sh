@@ -16,3 +16,10 @@ done
 wait
 
 echo "checkpoint;" | isql $ADDRESS:$PORT
+
+#echo "select count(*) from RDF_QUAD;" | isql $ADDRESS:$PORT
+#echo "select count(*) from RDF_QUAD table option (index RDF_QUAD);" | isql $ADDRESS:$PORT
+#echo "select count(*) from RDF_QUAD table option (index RDF_QUAD_POGS);" | isql $ADDRESS:$PORT
+#echo "select count(*) from RDF_QUAD table option (index RDF_QUAD_SP);" | isql $ADDRESS:$PORT
+#echo "select count(*) from RDF_QUAD table option (index RDF_QUAD_OP);" | isql $ADDRESS:$PORT
+#echo "select count(*) from RDF_QUAD table option (index RDF_QUAD_GS);" | isql $ADDRESS:$PORT

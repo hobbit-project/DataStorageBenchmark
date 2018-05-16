@@ -302,7 +302,7 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
         if (!env.containsKey(SNBConstants.EVALUATION_NUMBER_OF_WRONG_ANSWERS)) {
             throw new IllegalArgumentException("Couldn't get \"" + SNBConstants.EVALUATION_NUMBER_OF_WRONG_ANSWERS + "\" from the environment. Aborting.");
         }
-        EVALUATION_NUMBER_OF_WRONG_ANSWERS = finalModel.createProperty(env.get(SNBConstants.EVALUATION_NUMBER_OF_WRONG_ANSWERS));
+        EVALUATION_NUMBER_OF_WRONG_ANSWERS = finalModel.createProperty(env.get(SNBConstants.EVALUATION_NUMBER_OF_WRONG_ANSWERS));        
 	}
 
 	@Override
@@ -312,6 +312,10 @@ public class SNBEvaluationModule extends AbstractEvaluationModule {
     	String rStr = RabbitMQUtils.readString(receivedData);
         String [] lines = eStr.split("\n\n", 2);
         String type = eStr.substring(1, 4).trim();
+        
+        if (type.startsWith("WRM"))
+        	return;
+        
         if (!type.startsWith("U")) {
         	if (!lines[1].trim().equals(rStr.trim())) {
         		wrongAnswers.add(lines[0] + " : " + lines[1].length() + " - " + rStr.length());
