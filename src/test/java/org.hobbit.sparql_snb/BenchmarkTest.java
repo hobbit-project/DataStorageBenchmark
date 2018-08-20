@@ -49,7 +49,7 @@ public class BenchmarkTest extends EnvironmentVariablesWrapper {
         dataGeneratorBuilder = new DataGenDockerBuilder(new CommonDockersBuilder(SNBDataGenerator.class, DATA_GENERATOR_CONTAINER_IMAGE).useCachedImage(useCachedImage).customDockerFileReader(new StringReader("docker/sparql-snbdatagenerator.docker")));
         taskGeneratorBuilder = new TaskGenDockerBuilder(new CommonDockersBuilder(SNBTaskGenerator.class, TASK_GENERATOR_CONTAINER_IMAGE).useCachedImage(useCachedImage).customDockerFileReader(new StringReader("docker/sparql-snbtaskgenerator.docker")));
 
-        evalStorageBuilder = new EvalStorageDockerBuilder(new CommonDockersBuilder(DummyEvalStorage.class, "git.project-hobbit.eu:4567/defaulthobbituser/defaultevaluationstorage:1.0.7").useCachedImage(useCachedImage));
+        evalStorageBuilder = new EvalStorageDockerBuilder(new CommonDockersBuilder(DummyEvalStorage.class, "git.project-hobbit.eu:4567/defaulthobbituser/defaultevaluationstorage:1.0.5").useCachedImage(useCachedImage));
 
         systemAdapterBuilder = new SystemAdapterDockerBuilder(new CommonDockersBuilder(VirtuosoSystemAdapter.class, "git.project-hobbit.eu:4567/mspasic/virtuososystem").useCachedImage(useCachedImage).customDockerFileReader(new StringReader("docker/virtuososystem.docker")));
         evalModuleBuilder = new EvalModuleDockerBuilder(new CommonDockersBuilder(SNBEvaluationModule.class, "git.project-hobbit.eu:4567/mspasic/evaluation-module").useCachedImage(useCachedImage).customDockerFileReader(new StringReader("docker/sparql-snbevaluationmodule.docker")));
