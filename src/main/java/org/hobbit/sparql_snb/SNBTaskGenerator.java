@@ -585,7 +585,7 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
     			name = "query" + String.valueOf(queryType) + ".txt";
     		else
     			name = "s" + String.valueOf(queryType-14) + ".txt";
-			queryString += new String(Files.readAllBytes(Paths.get("snb_queries/" + name )));
+			queryString += new String(Files.readAllBytes(Paths.get(getClass().getClassLoader().getResource("snb_queries/" + name).getFile() )));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
