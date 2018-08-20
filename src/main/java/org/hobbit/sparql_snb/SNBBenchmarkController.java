@@ -30,12 +30,12 @@ public class SNBBenchmarkController extends AbstractBenchmarkController {
 
 	// TODO: Add image names of containers
 	/* Data generator Docker image */
-	private static final String DATA_GENERATOR_CONTAINER_IMAGE = "git.project-hobbit.eu:4567/mspasic/dsb-datagenerator";
+	protected static final String DATA_GENERATOR_CONTAINER_IMAGE = "git.project-hobbit.eu:4567/mspasic/dsb-datagenerator";
 	/* Task generator Docker image */
-	private static final String TASK_GENERATOR_CONTAINER_IMAGE = "git.project-hobbit.eu:4567/mspasic/dsb-taskgenerator";
-	private static final String SEQ_TASK_GENERATOR_CONTAINER_IMAGE = "git.project-hobbit.eu:4567/mspasic/dsb-seqtaskgenerator";
+	protected static final String TASK_GENERATOR_CONTAINER_IMAGE = "git.project-hobbit.eu:4567/mspasic/dsb-taskgenerator";
+	protected static final String SEQ_TASK_GENERATOR_CONTAINER_IMAGE = "git.project-hobbit.eu:4567/mspasic/dsb-seqtaskgenerator";
 	/* Evaluation module Docker image */
-	private static final String EVALUATION_MODULE_CONTAINER_IMAGE = "git.project-hobbit.eu:4567/mspasic/dsb-evaluationmodule";
+	protected static final String EVALUATION_MODULE_CONTAINER_IMAGE = "git.project-hobbit.eu:4567/mspasic/dsb-evaluationmodule";
 
 	public SNBBenchmarkController() {
 
