@@ -8,6 +8,7 @@ ADD . /opt/virtuoso
 
 RUN sudo apt-get update
 RUN sudo apt-get install libaio1 libtinfo-dev
+RUN sudo apt-get install proj-data
 
 # get java 8
 RUN apt-get update && \

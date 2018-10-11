@@ -4,7 +4,7 @@
 #
 #  Install Virtuoso Universal Server
 #
-#  Copyright (C) 2007-2017 OpenLink Software
+#  Copyright (C) 2007-2018 OpenLink Software
 #
 #  The copyright above and this notice must be preserved in all
 #  copies of this source code.  The copyright above does not
@@ -39,7 +39,7 @@ umask 022
 #
 #  Version info
 #
-VERSION=8.0
+VERSION=8.1
 export VERSION
 
 #

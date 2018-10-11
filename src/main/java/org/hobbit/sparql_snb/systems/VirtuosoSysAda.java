@@ -135,7 +135,7 @@ public class VirtuosoSysAda extends AbstractSystemAdapter {
 				results = qe.execSelect();
 				ResultSetFormatter.outputAsJSON(outputStream, results);
 			} catch (Exception e) {
-				LOGGER.info("Problem while executing task " + taskId + ": " + queryString);
+			    LOGGER.error("Problem while executing task " + taskId + ": " + queryString, e);
 				//TODO: fix this hacking
 				try {
 					outputStream.write("{\"head\":{\"vars\":[\"xxx\"]},\"results\":{\"bindings\":[{\"xxx\":{\"type\":\"literal\",\"value\":\"XXX\"}}]}}".getBytes());
