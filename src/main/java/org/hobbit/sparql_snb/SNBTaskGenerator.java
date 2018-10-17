@@ -122,7 +122,7 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
         
         /* Frequencies */
         frequency = new int[22];
-    	try (BufferedReader br = new BufferedReader(new FileReader("workload/frequencies.txt"))) {
+    	try (BufferedReader br = new BufferedReader(new FileReader(getClass().getClassLoader().getResource("workload/frequencies.txt").getFile()))) {
     	    String line;
     	    while ((line = br.readLine()) != null) {
     	       String [] parts = line.split("=");
@@ -157,7 +157,7 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
 
 	private HashMap<Long, String> readMappings(String path) {
 		HashMap<Long, String> map = new HashMap<>();
-    	try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+    	try (BufferedReader br = new BufferedReader( new FileReader(getClass().getClassLoader().getResource(path).getFile()))) {
     	    String line;
     	    while ((line = br.readLine()) != null) {
     	       String [] parts = line.split(" - ");
@@ -585,7 +585,7 @@ public class SNBTaskGenerator extends AbstractTaskGenerator {
     			name = "query" + String.valueOf(queryType) + ".txt";
     		else
     			name = "s" + String.valueOf(queryType-14) + ".txt";
-			queryString += new String(Files.readAllBytes(Paths.get("snb_queries/" + name )));
+			queryString += new String(Files.readAllBytes(Paths.get(getClass().getClassLoader().getResource("snb_queries/" + name).getFile() )));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

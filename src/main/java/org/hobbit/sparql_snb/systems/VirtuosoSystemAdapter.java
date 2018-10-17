@@ -37,9 +37,9 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
 
 	@Override
 	public void receiveGeneratedData(byte[] data) {
-		ByteBuffer dataBuffer = ByteBuffer.wrap(data);    	
+		ByteBuffer dataBuffer = ByteBuffer.wrap(data);
     	String fileName = RabbitMQUtils.readString(dataBuffer);
-    	    	
+
     	FileOutputStream fos;
 		try {
 			fos = new FileOutputStream(System.getProperty("user.dir") + File.separator + "datasets" + File.separator + fileName);
@@ -134,9 +134,10 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
     }
     
     private void internalInit() {
-		String datasetsFolderName = "datasets"; 
+		String datasetsFolderName = "datasets";
 		File theDir = new File(datasetsFolderName);
-		theDir.mkdir();
+		if (!theDir.exists())
+			theDir.mkdir();
     	
     	queryExecFactory = new QueryExecutionFactoryHttp("http://" + virtuosoContName + ":8890/sparql");
     	
@@ -172,7 +173,7 @@ public class VirtuosoSystemAdapter extends AbstractSystemAdapter {
     }
     
     private void loadDataset() {
-    	String scriptFilePath = System.getProperty("user.dir") + File.separator + "load.sh";
+    	String scriptFilePath = System.getProperty("user.dir") + File.separator + "system/load.sh";
     	String[] command = {"/bin/bash", scriptFilePath, virtuosoContName, System.getProperty("user.dir") + File.separator + "datasets", "2"};
     	Process p;
     	try {
