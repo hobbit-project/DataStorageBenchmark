@@ -1,0 +1,26 @@
+FROM openlink/virtuoso-closedsource-8
+
+# Install OpenJDK-8
+RUN apt-get update && \
+    apt-get install -y openjdk-8-jdk && \
+    apt-get install -y ant && \
+    apt-get clean;
+
+# Fix certificate issues
+RUN apt-get update && \
+    apt-get install ca-certificates-java && \
+    apt-get clean && \
+    update-ca-certificates -f;
+
+# Setup JAVA_HOME -- useful for docker commandline
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
+RUN export JAVA_HOME
+
+ADD target/DataStorageBenchmark-1.0.0-SNAPSHOT.jar /sparql-snb/DataStorageBenchmark.jar
+
+COPY system/ /sparql-snb/
+
+WORKDIR /sparql-snb
+RUN mkdir -p /myvol/db
+VOLUME /myvol
+CMD ["/sparql-snb/run3.sh"]
